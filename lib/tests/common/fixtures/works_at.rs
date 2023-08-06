@@ -1,0 +1,88 @@
+use cypher_dto::{Entity, Error, QueryFields, RelationEntity, RelationId, StampMode};
+use neo4rs::{Query, Relation, Row, UnboundedRelation};
+
+/// A fieldless relation.
+#[derive(Clone, Debug, PartialEq)]
+pub struct WorksAt {}
+impl Entity for WorksAt {
+    fn typename() -> &'static str {
+        "WORKS_AT"
+    }
+}
+impl QueryFields for WorksAt {
+    fn field_names() -> &'static [&'static str] {
+        &[]
+    }
+
+    fn add_values_to_params(&self, query: Query, _: Option<&str>, _: StampMode) -> Query {
+        query
+    }
+}
+impl TryFrom<Row> for WorksAt {
+    type Error = Error;
+    fn try_from(_: Row) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+impl RelationEntity for WorksAt {
+    type Id = WorksAtId;
+    fn identifier(&self) -> Self::Id {
+        WorksAtId {}
+    }
+}
+impl TryFrom<Relation> for WorksAt {
+    type Error = Error;
+    fn try_from(_value: Relation) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+impl TryFrom<UnboundedRelation> for WorksAt {
+    type Error = Error;
+    fn try_from(_value: UnboundedRelation) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+
+//
+// WorksAtId
+//
+pub struct WorksAtId {}
+impl RelationId for WorksAtId {
+    type T = WorksAt;
+}
+impl From<WorksAt> for WorksAtId {
+    fn from(_value: WorksAt) -> Self {
+        WorksAtId {}
+    }
+}
+impl TryFrom<Relation> for WorksAtId {
+    type Error = Error;
+    fn try_from(_value: Relation) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+impl TryFrom<UnboundedRelation> for WorksAtId {
+    type Error = Error;
+    fn try_from(_value: UnboundedRelation) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}
+impl Entity for WorksAtId {
+    fn typename() -> &'static str {
+        WorksAt::typename()
+    }
+}
+impl QueryFields for WorksAtId {
+    fn field_names() -> &'static [&'static str] {
+        &[]
+    }
+    fn add_values_to_params(&self, query: Query, _prefix: Option<&str>, _mode: StampMode) -> Query {
+        query
+    }
+}
+impl TryFrom<Row> for WorksAtId {
+    type Error = Error;
+    fn try_from(_value: Row) -> Result<Self, Self::Error> {
+        Ok(Self {})
+    }
+}

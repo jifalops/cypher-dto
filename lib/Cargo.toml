@@ -1,0 +1,25 @@
+[package]
+name = "cypher-dto"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["macros"]
+macros = ["cypher-dto-macros"]
+serde = ["macros", "cypher-dto-macros/serde"]
+
+[dependencies]
+chrono = "0.4"
+cypher-dto-macros = { path = "../macros", optional = true }
+# 0.7.0-alpha.1
+neo4rs = { git = "https://github.com/neo4j-labs/neo4rs.git", rev = "0bd8099017d3ad57a844c9a456e7aaaca5e4721e" }
+thiserror = "1.0"
+
+[dev-dependencies]
+tokio = "1.29.1"
+lenient_semver = { version = "0.4.2", features = ["version_lite"] }
+neo4j_testcontainers = "0.1.0"
+pretty_env_logger = "0.5.0"
+serde = { version = "1.0.174", features = ["derive"] }
+testcontainers = "0.14.0"
+uuid = { version = "1.4.1", features = ["v4"] }
