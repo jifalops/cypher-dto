@@ -1,7 +1,12 @@
 [package]
 name = "cypher-dto"
+description = "A collection of traits and macros for working Data Transfer Objects (DTOs) Cypher and Neo4j."
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+keywords = ["neo4j", "cypher", "dto", "query", "graph"]
+categories = ["database", "data-structures", "encoding"]
+repository = "https://github.com/jifalops/cypher-dto"
 
 [features]
 default = ["macros"]
