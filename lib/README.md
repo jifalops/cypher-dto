@@ -1,6 +1,48 @@
 # cypher-dto
 
-A collection of traits and macros for working Data Transfer Objects (DTOs) in Cypher.
+A collection of traits and macros for working Data Transfer Objects (DTOs) in Neo4j.
+
+## Example
+
+```sh
+cargo add cypher-dto #--features serde
+```
+
+```rust
+#[node]
+struct Person {
+    id: String,
+    name: String,
+    #[name = "zip_code"]
+    zip: String,
+}
+assert_eq!(Person::typename(), "Person");
+assert_eq!(Person::field_names(), &["id", "name", "zip_code"]);
+
+// For building parameterized cypher queries...
+assert_eq!(Person::as_query_fields(), "id: $id, name: $name, zip_code: $zip_code");
+assert_eq!(Person::as_query_obj(), "Person { id: $id, name: $name, zip_code: $zip_code }");
+
+let person = Person::new("123", "John", "12345");
+
+// Unitary CRUD operations are provided for convenience.
+let query: neo4rs::Query = person.create();
+
+// Equivalent to:
+let mut query = Query::new(format!(
+    "CREATE (n:{})",
+    Person::as_query_obj()
+));
+query = person.add_values_to_params(query);
+```
+
+This crate has three responsibilities:
+
+1. Assist in writing readable queries:
+    ```rust
+    format!("MATCH (n:{}) RETURN n", Person::as_query_obj())
+    ```
+2.
 
 This library introduces an identifier concept to structs that represent
 a node or relation in Neo4j.
