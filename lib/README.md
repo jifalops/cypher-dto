@@ -2,16 +2,18 @@
 
 A collection of traits and macros for working Data Transfer Objects (DTOs) in Neo4j.
 
-## Example
-
 ```sh
 cargo add cypher-dto #--features serde
 ```
 
+## Examples
+
+### Basic usage
+
 ```rust
 #[node]
 struct Person {
-    id: String,
+    id: String,     // Inferred to be the only #[id] field.
     name: String,
     #[name = "zip_code"]
     zip: String,
@@ -35,129 +37,140 @@ let mut query = Query::new(format!(
 ));
 query = person.add_values_to_params(query);
 ```
-
-This crate has three responsibilities:
-
-1. Assist in writing readable queries:
-    ```rust
-    format!("MATCH (n:{}) RETURN n", Person::as_query_obj())
-    ```
-2.
-
-This library introduces an identifier concept to structs that represent
-a node or relation in Neo4j.
-
-It can help with translating structs (or the `<Foo>Id` counterpart) into Cypher queries.
-However, it takes the stance that non trivial queries should be managed by hand.
-So while it does provide basic CRUD queries ([`neo4rs::Query`]), for nodes and relations,
-it also provides the building block methods for constructing your own queries more cleanly
-(i.e. with `format!()`).
-
-## Usage
-
-```sh
-cargo add cypher-dto
+```rust
+#[relation]
+struct Knows;
+assert_eq!(Knows::typename(), "KNOWS");
 ```
 
+### Multi valued identifiers
+
 ```rust
-use cypher_dto::Node;
-
-#[derive(Node)]
-struct Person {
-    id: String,       // Inferred as an #[id] field
-    name: String,
-    age: u8,
-}
-
-assert_eq!(Person::field_names(), &["id", "name", "age"]);
-assert_eq!(Person::as_query_fields(), "id: $id, name: $name, age: $age");
-assert_eq!(Person::as_query_obj(), "Person { id: $id, name: $name, age: $age }");
-
-let alice = Person { id: "p1".to_owned(), name: "Alice".to_string(), age: 30 };
-
-// Basic CRUD queries are built-in for node and relation structs.
-let q: neo4rs::Query = alice.create();
-
-// or manually...
-let mut q2 =  Query::new(format!("CREATE (n:{})", Person::as_query_obj()));
-q2 = alice.add_values_to_params(q2);
-
-assert_eq!(q, q2);
-
-
-#[derive(Relation)]
-struct WorksAt {
-    since: u32,
-}
-
-/// Multi-valued keys are supported.
-#[derive(Node)]
+#[node]
 struct Company {
   #[id]
   name: String,
   #[id]
   state: String,
-  #[name = "zip_code"]
-  zip: String,
+  phone: String,
 }
-assert_eq!(Company::as_query_obj(), "Company { name: $name, state: $state, zip_code: $zip_code }");
+let company = Company::new("Acme", "CA", "555-555-5555");
+let id = company.identifier();
+assert_eq!(id.name(), "Acme");
+assert_eq!(id.state(), "CA");
+assert_eq!(id, CompanyId::new("Acme", "CA"));
 
-let acme = Company { name: "Acme LLC".to_owned(), state: "CA".to_owned(), zip: "90210".to_owned() };
-let rel = WorksAt { since: 2010 };
+assert_eq!(CompanyId::typename(), "Company");
+assert_eq!(CompanyId::field_names(), &["name", "state"]);
 
-let query = rel.create(RelationBound::Match(alice.into(), RelationBound::Create(acme)));
-// MATCH (s:Person { id: $s_id })
-// CREATE (e:Company { name: $e_name, state: $e_state, zip_code: $e_zip_code })
-// CREATE (s)-[r:WORKS_AT { since: $since }]->(e)
+let query: neo4rs::Query = id.read();
+// Equivalent to:
+let mut query = Query::new(format!(
+    "MATCH (n:{}) RETURN n",
+    CompanyId::as_query_obj()
+));
+query = id.add_values_to_params(query);
 ```
 
-An extra struct, `<StructName>Id`, is created for each derived `Node` or `Relation`.
-It represents the zero-to-many valued key for uniquely identifying an entity.
+### Builder, new, and getters
 
-- Nodes have one or more ID fields, and will default to using all fields if none are marked with `#[id]` or named `id`.
-- Relations can have zero or more ID fields. Zero is the normal case where the relation is uniquely identified by its type and the nodes it connects. But keys may be added to relations as well. Relations default to no id fields, and simply use the `typename()`.
+* The generated `::new()` method will accept `&str` for `String` fields, and `&[T]` for `Vec<T>` fields.
 
-Lets load a user from their ID:
-
-```rust
-#[derive(Node)]
-struct User {
-  id: String,
-  email: String,
-}
-
-let id = UserId { id: "u1".to_owned() };
-let query = id.read();
-// MATCH (n:User { id: $id })
-// RETURN n
-let stream = db.execute(query).await?;
-let row = result.next().await?;
-let node: neo4rs::Node = row.get("n").ok_or(...)?;
-let user = User::try_from(node)?; // `neo4rs::{Row, Node, Relation, UnboundedRelation}` are supported.
-
-let query = id.delete();
-// MATCH (n:User { id: $id })
-// DETACH DELETE n
-```
-
-### Updating: Merge and Replace
+* Doc comments are copied to the getters for the struct, the getter(s) on the `FooId` struct, and the methods on the `FooBuilder` struct.
 
 ```rust
 #[node]
-struct User {
-  id: String,
-  email: String,
-  phone: Option<String>
+struct Person {
+  /// This comment is copied to the getter, the Id getter, and the builder method.
+  name: String,
 }
-let user = User::new("u1".to_owned(), "abc@example.com".to_owned(), None);
-let user2 = user.builder().email("foo@example.com").build();
+let p = Person::new("John");
+let p = p.into_builder().name("Ferris").build();
+assert_eq!(p.name(), "Ferris");
+```
 
-let query = user2.update(UpdateMode::Merge);
-// MATCH (n:User { id: $id })
-// SET n += { id: $id, email: $email, phone: $phone }
-let query = user2.update(UpdateMode::Replace);
-// MATCH (n:User { id: $id })
-// SET n = { id: $id, email: $email, phone: $phone }
+### Using derive instead of `#[node]` or `#[relation]`
 
-// Note: Merge and Replace have the same effect in this example.
+```rust
+#[derive(CypherRelation, Clone, Debug, PartialEq)]
+struct Knows;
+
+// Equivalent to:
+#[relation]
+struct Knows;
+
+// Or, if the `serde` feature is enabled:
+#[derive(CypherRelation, Clone, Debug, PartialEq, Serialize, Deserialize)]
+```
+
+For more details about the macro variations, see the [cypher-dto-macros](https://crates.io/crates/cypher-dto-macros) crate.
+
+### Timestamps
+
+There's built-in support for special timestamp fields: `created_at` and `updated_at`, `created` and `updated`, or any single one of those four.
+
+```rust
+#[node(stamps)]
+struct Person {
+  name: String,
+}
+// Adds two fields:
+//   created_at: Option<DateTime<Utc>>,
+//   updated_at: Option<DateTime<Utc>>,
+
+#[node(stamps = "short")]
+struct Person {
+  name: String,
+}
+// Adds two fields:
+//   created: Option<DateTime<Utc>>,
+//   updated: Option<DateTime<Utc>>,
+
+#[node(stamps = "updated_at")]
+struct Person {
+  name: String,
+}
+// Adds one field:
+//   updated_at: Option<DateTime<Utc>>,
+```
+
+The timestamp fields are treated a little bit differently than other fields:
+
+* They are not parameters in the generated `::new()` method.
+* They sometimes have hardcoded values in `::as_query_fields()`.
+  * Calling `as_query_fields()` with `StampMode::Create` will use `datetime()` in the query instead of `$created_at` for example.
+
+`Option<DateTime<Utc>>` is used instead of `DateTime<Utc>` so that the fields can be `None` when creating a new instance, before it exists in the database.
+
+> NOTE: Support for Option params in the `neo4rs` crate is in master, but not yet released.
+>
+> You are welcome to depend on the master branch of this library to enable full support for timestamps.
+>
+> ```toml
+> [dependencies]
+> cypher-dto = { git = "https://github.com/jifalops/cypher-dto.git" }
+> ```
+
+### Unitary CRUD operations
+
+This library takes the point of view that non-trivial queries should be managed by hand, but it does provide basic CRUD operations for convenience. Hopefully what you've seen so far shows how it can help create more readable complex queries.
+
+`#[node]` and `#[relation]` structs get `create()` and `update()` methods, while the corresponding `FooId` structs get `read()` and `delete()` methods, all of which return a `neo4rs::Query`.
+
+None of those methods even take any arguments, with the exception of creating a relation, which needs to know if the start and end nodes it's between need created or already exist.
+
+```rust
+#[node]
+Person {
+  name: String,
+}
+
+#[relation]
+struct Knows;
+
+let alice = Person::new("Alice");
+let bob = Person::new("Bob");
+let knows = Knows; // Relations can have fields and ids too of course.
+
+let query = knows.create(RelationBound::Create(&alice), RelationBound::Create(&bob));
 ```
