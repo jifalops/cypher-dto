@@ -32,7 +32,7 @@ impl Entity {
                 fields: fields.0,
             },
             Self {
-                vis: vis,
+                vis,
                 ident: id_ident,
                 name,
                 fields: fields.1,
