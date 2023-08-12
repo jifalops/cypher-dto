@@ -66,14 +66,6 @@ impl FieldType {
             _ => false,
         }
     }
-
-    pub fn is_num(&self) -> bool {
-        match self {
-            FieldType::Num(_, _) => true,
-            FieldType::OptionNum(_, _) => true,
-            _ => false,
-        }
-    }
 }
 
 /// Helps with using &str and &[T] instead of String and Vec in arg types and getter returns.
