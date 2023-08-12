@@ -92,7 +92,7 @@ assert_eq!(p.name(), "Ferris");
 ### Using derive instead of `#[node]` or `#[relation]`
 
 ```rust
-#[derive(CypherRelation, Clone, Debug, PartialEq)]
+#[derive(Relation, Clone, Debug, PartialEq)]
 struct Knows;
 
 // Equivalent to:
@@ -100,7 +100,7 @@ struct Knows;
 struct Knows;
 
 // Or, if the `serde` feature is enabled:
-#[derive(CypherRelation, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Relation, Clone, Debug, PartialEq, Serialize, Deserialize)]
 ```
 
 For more details about the macro variations, see the [cypher-dto-macros](https://crates.io/crates/cypher-dto-macros) crate.

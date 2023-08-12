@@ -1,5 +1,5 @@
-use cypher_dto::CypherRelation;
+use cypher_dto::Relation;
 
 /// A fieldless relation.
-#[derive(Clone, Debug, PartialEq, CypherRelation)]
+#[derive(Clone, Debug, PartialEq, Relation)]
 pub struct WorksAt {}

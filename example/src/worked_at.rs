@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::CypherRelation;
+use cypher_dto::Relation;
 
 /// A relation with an ID field.
 ///
 /// Can be used for multiple relations of the same type between the same nodes.
-#[derive(Clone, Debug, PartialEq, CypherRelation)]
+#[derive(Clone, Debug, PartialEq, Relation)]
 pub struct WorkedAt {
     #[id]
     #[name("foo")]
