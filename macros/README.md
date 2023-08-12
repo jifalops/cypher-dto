@@ -7,7 +7,7 @@ There are three types of macros contained:
 1. Derive macros, which do most of the work.
 
     ```rust
-    #[derive(CypherNode)]
+    #[derive(Node)]
     struct Person {
       id: String,
       name: String,
@@ -15,7 +15,7 @@ There are three types of macros contained:
       zip: String,
     }
 
-    #[derive(CypherRelation)]
+    #[derive(Relation)]
     struct Knows;
     ```
 
@@ -39,11 +39,11 @@ There are three types of macros contained:
     #[node]
     struct Person {}
 
-    #[derive(CypherNode, Clone, Debug, PartialEq)]
+    #[derive(Node, Clone, Debug, PartialEq)]
     struct Person {}
 
     // Or, if using the `serde` feature:
-    #[derive(CypherNode, Clone, Debug, PartialEq, Serialize, Deserialize)]
+    #[derive(Node, Clone, Debug, PartialEq, Serialize, Deserialize)]
     struct Person {}
     ```
 
@@ -52,7 +52,7 @@ There are three types of macros contained:
     struct Knows {}
 
     #[stamps = "short"]
-    #[derive(CypherRelation, Clone, Debug, PartialEq)]
+    #[derive(Relation, Clone, Debug, PartialEq)]
     struct Knows {}
     ```
 
@@ -61,7 +61,7 @@ There are three types of macros contained:
     struct Person {}
 
     #[stamps]
-    #[derive(CypherNode, Clone, Debug, PartialEq)]
+    #[derive(Node, Clone, Debug, PartialEq)]
     #[name = "Foo"]
     struct Person {}
     ```

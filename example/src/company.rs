@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::CypherNode;
+use cypher_dto::Node;
 
 /// Has a multi-valued ID and required timestamps.
-#[derive(Clone, Debug, PartialEq, CypherNode)]
+#[derive(Clone, Debug, PartialEq, Node)]
 pub struct Company {
     #[id]
     pub name: String,

@@ -28,8 +28,8 @@ pub fn cypher_entity_impl(attr: TokenStream, input: TokenStream, typ: EntityType
 
     let serde = derive_serde();
     let derive = match typ {
-        EntityType::Node => quote!(::cypher_dto::CypherNode),
-        EntityType::Relation => quote!(::cypher_dto::CypherRelation),
+        EntityType::Node => quote!(::cypher_dto::Node),
+        EntityType::Relation => quote!(::cypher_dto::Relation),
     };
     quote! {
         #stamps
