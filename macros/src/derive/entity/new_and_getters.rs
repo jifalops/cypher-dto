@@ -22,27 +22,39 @@ pub fn impl_new_and_getters(entity: &Entity) -> TokenStream {
             comments.push(field.comments());
         }
     }
-    let (arg_types, arg_converts, without_amps) =
-        ArgHelper::unzip(types.iter().map(|t| ArgHelper::new(t)).collect());
+    let (
+        arg_type,
+        arg_into_field_suffix,
+        getter_return,
+        field_into_getter_prefix_amp,
+        field_into_getter_suffix,
+    ) = ArgHelper::unzip(types.iter().map(|t| ArgHelper::new(t)).collect());
+    let (
+        _stamp_arg_type,
+        _stamp_arg_into_field_suffix,
+        stamp_getter_return,
+        stamp_field_into_getter_prefix_amp,
+        stamp_field_into_getter_suffix,
+    ) = ArgHelper::unzip(stamp_types.iter().map(|t| ArgHelper::new(t)).collect());
     quote! {
        impl #entity_ident {
-            pub fn new(#( #idents: #arg_types, )*) -> Self {
+            pub fn new(#( #idents: #arg_type, )*) -> Self {
                 Self {
-                    #( #idents: #idents #arg_converts, )*
+                    #( #idents: #idents #arg_into_field_suffix, )*
                     #( #stamp_idents: None, )*
                 }
             }
 
             #(
                 #( #comments )*
-                pub fn #idents(&self) -> &#without_amps {
-                    &self.#idents
+                pub fn #idents(&self) -> #getter_return {
+                    #field_into_getter_prefix_amp self.#idents #field_into_getter_suffix
                 }
             )*
             #(
                 #( #stamp_comments )*
-                pub fn #stamp_idents(&self) -> &#stamp_types {
-                    &self.#stamp_idents
+                pub fn #stamp_idents(&self) -> #stamp_getter_return  {
+                    #stamp_field_into_getter_prefix_amp self.#stamp_idents #stamp_field_into_getter_suffix
                 }
             )*
        }

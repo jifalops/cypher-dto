@@ -66,48 +66,104 @@ impl FieldType {
             _ => false,
         }
     }
+
+    pub fn is_num(&self) -> bool {
+        match self {
+            FieldType::Num(_, _) => true,
+            FieldType::OptionNum(_, _) => true,
+            _ => false,
+        }
+    }
 }
 
 /// Helps with using &str and &[T] instead of String and Vec in arg types and getter returns.
 pub struct ArgHelper {
+    /// The type to use for the argument.
     pub arg_type: Type,
-    pub convert: TokenStream,
-    pub without_ampersand: Type,
+    /// Convert from [arg_type] to the true type of the field, by adding this suffix.
+    pub arg_into_field_suffix: TokenStream,
+    /// The return type of the getter.
+    pub getter_return: Type,
+    /// Prefix `#ident` to `& #ident`.
+    pub field_into_getter_prefix_amp: TokenStream,
+    /// Convert the field into [getter_return], after `#ident`.
+    pub field_into_getter_suffix: TokenStream,
 }
 impl ArgHelper {
     pub fn new(ty: &Type) -> Self {
         if is_outer_type(ty, "String") {
+            let subs: Type = syn::parse_str("&str").unwrap();
             Self {
-                arg_type: syn::parse_str("&str").unwrap(),
-                convert: quote!(.to_owned()),
-                without_ampersand: syn::parse_str("str").unwrap(),
+                arg_type: subs.clone(),
+                arg_into_field_suffix: quote!(.to_owned()),
+                getter_return: subs,
+                field_into_getter_prefix_amp: quote!(&),
+                field_into_getter_suffix: quote!(),
             }
         } else if is_outer_type(ty, "Vec") {
             let inner = inner_type(ty).unwrap();
+            let subs: Type = syn::parse_str(&format!("&[{}]", quote!(#inner))).unwrap();
             Self {
-                arg_type: syn::parse_str(&format!("&[{}]", quote!(#inner).to_string())).unwrap(),
-                convert: quote!(.to_vec()),
-                without_ampersand: syn::parse_str(&format!("[{}]", quote!(#inner).to_string()))
-                    .unwrap(),
+                arg_type: subs.clone(),
+                arg_into_field_suffix: quote!(.to_vec()),
+                getter_return: subs,
+                field_into_getter_prefix_amp: quote!(&),
+                field_into_getter_suffix: quote!(),
+            }
+        } else if is_outer_type(ty, "Option") {
+            let inner = inner_type(ty).unwrap();
+            let mut getter_return =
+                syn::parse_str(&format!("Option<&{}>", quote!(#inner))).unwrap();
+            let mut field_into_getter_suffix = quote!(.as_ref());
+            if Num::from_type(inner).is_some() {
+                getter_return = ty.clone();
+                field_into_getter_suffix = quote!();
+            }
+            Self {
+                arg_type: ty.clone(),
+                arg_into_field_suffix: quote!(),
+                getter_return,
+                field_into_getter_prefix_amp: quote!(),
+                field_into_getter_suffix,
             }
         } else {
             Self {
                 arg_type: ty.clone(),
-                convert: quote!(),
-                without_ampersand: ty.clone(),
+                arg_into_field_suffix: quote!(),
+                getter_return: syn::parse_str(&format!("&{}", quote!(#ty))).unwrap(),
+                field_into_getter_prefix_amp: quote!(&),
+                field_into_getter_suffix: quote!(),
             }
         }
     }
-    pub fn unzip(vec: Vec<ArgHelper>) -> (Vec<Type>, Vec<TokenStream>, Vec<Type>) {
-        let mut types = Vec::new();
-        let mut converts = Vec::new();
-        let mut without_amps = Vec::new();
+    pub fn unzip(
+        vec: Vec<ArgHelper>,
+    ) -> (
+        Vec<Type>,
+        Vec<TokenStream>,
+        Vec<Type>,
+        Vec<TokenStream>,
+        Vec<TokenStream>,
+    ) {
+        let mut arg_type = Vec::new();
+        let mut arg_into_field_suffix = Vec::new();
+        let mut getter_return = Vec::new();
+        let mut field_into_getter_prefix_amp = Vec::new();
+        let mut field_into_getter_suffix = Vec::new();
         for helper in vec {
-            types.push(helper.arg_type);
-            converts.push(helper.convert);
-            without_amps.push(helper.without_ampersand);
+            arg_type.push(helper.arg_type);
+            arg_into_field_suffix.push(helper.arg_into_field_suffix);
+            getter_return.push(helper.getter_return);
+            field_into_getter_prefix_amp.push(helper.field_into_getter_prefix_amp);
+            field_into_getter_suffix.push(helper.field_into_getter_suffix);
         }
-        (types, converts, without_amps)
+        (
+            arg_type,
+            arg_into_field_suffix,
+            getter_return,
+            field_into_getter_prefix_amp,
+            field_into_getter_suffix,
+        )
     }
 }
 
@@ -316,19 +372,19 @@ mod tests {
         let ty = syn::parse_str("String").unwrap();
         let helper = ArgHelper::new(&ty);
         assert_eq!(to_string(&helper.arg_type), "& str");
-        assert_eq!(to_string(&helper.without_ampersand), "str");
-        assert_eq!(helper.convert.to_string(), ". to_owned ()");
+        assert_eq!(to_string(&helper.getter_return), "str");
+        assert_eq!(helper.arg_into_field_suffix.to_string(), ". to_owned ()");
 
         let ty = syn::parse_str("Vec<String>").unwrap();
         let helper = ArgHelper::new(&ty);
         assert_eq!(to_string(&helper.arg_type), "& [String]");
-        assert_eq!(to_string(&helper.without_ampersand), "[String]");
-        assert_eq!(helper.convert.to_string(), ". to_vec ()");
+        assert_eq!(to_string(&helper.getter_return), "[String]");
+        assert_eq!(helper.arg_into_field_suffix.to_string(), ". to_vec ()");
 
         let ty = syn::parse_str("Option<String>").unwrap();
         let helper = ArgHelper::new(&ty);
         assert_eq!(to_string(&helper.arg_type), "Option < String >");
-        assert_eq!(to_string(&helper.without_ampersand), "Option < String >");
-        assert_eq!(helper.convert.to_string(), "");
+        assert_eq!(to_string(&helper.getter_return), "Option < String >");
+        assert_eq!(helper.arg_into_field_suffix.to_string(), "");
     }
 }
