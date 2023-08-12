@@ -1,7 +1,7 @@
+mod builder;
 mod field;
 mod fields;
-mod impl_builder;
-mod impl_new_and_getters;
+mod new_and_getters;
 
 pub use field::{ArgHelper, EntityField, FieldType, StampType};
 pub use fields::EntityFields;
@@ -53,7 +53,7 @@ impl Entity {
     }
 
     pub fn builder_impl(&self) -> TokenStream {
-        impl_builder::impl_builder(self)
+        builder::impl_builder(self)
     }
 
     pub fn entity_impl(&self) -> TokenStream {
@@ -63,7 +63,7 @@ impl Entity {
             self.fields.to_vectors();
         let types: Vec<&Type> = types.iter().map(|t| t.as_type()).collect();
 
-        let new_and_getters = impl_new_and_getters::impl_new_and_getters(self);
+        let new_and_getters = new_and_getters::impl_new_and_getters(self);
 
         quote! {
             use ::cypher_dto::Entity as _;
