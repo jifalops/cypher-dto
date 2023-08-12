@@ -107,7 +107,7 @@ impl ArgHelper {
             let mut getter_return =
                 syn::parse_str(&format!("Option<&{}>", quote!(#inner))).unwrap();
             let mut field_into_getter_suffix = quote!(.as_ref());
-            if Num::from_type(inner).is_some() {
+            if is_copy_type(inner) {
                 getter_return = ty.clone();
                 field_into_getter_suffix = quote!();
             }
@@ -119,11 +119,18 @@ impl ArgHelper {
                 field_into_getter_suffix,
             }
         } else {
+            let is_copy = is_copy_type(&ty);
             Self {
                 arg_type: ty.clone(),
                 arg_into_field_suffix: quote!(),
-                getter_return: syn::parse_str(&format!("&{}", quote!(#ty))).unwrap(),
-                field_into_getter_prefix_amp: quote!(&),
+                getter_return: match is_copy {
+                    true => ty.clone(),
+                    false => syn::parse_str(&format!("&{}", quote!(#ty))).unwrap(),
+                },
+                field_into_getter_prefix_amp: match is_copy {
+                    true => quote!(),
+                    false => quote!(&),
+                },
                 field_into_getter_suffix: quote!(),
             }
         }
@@ -200,6 +207,23 @@ fn inner_type(ty: &Type) -> Option<&Type> {
             }
         }
         _ => None,
+    }
+}
+
+fn is_copy_type(ty: &Type) -> bool {
+    if Num::from_type(ty).is_some() {
+        return true;
+    }
+    let path = match ty {
+        Type::Path(path) => path,
+        _ => return false,
+    };
+    let last_segment = path.path.segments.last().unwrap();
+    let name = last_segment.ident.to_string();
+    match name.as_str() {
+        "bool" => true,
+        "char" => true,
+        _ => false,
     }
 }
 
@@ -364,19 +388,24 @@ mod tests {
         let ty = syn::parse_str("String").unwrap();
         let helper = ArgHelper::new(&ty);
         assert_eq!(to_string(&helper.arg_type), "& str");
-        assert_eq!(to_string(&helper.getter_return), "str");
+        assert_eq!(to_string(&helper.getter_return), "& str");
         assert_eq!(helper.arg_into_field_suffix.to_string(), ". to_owned ()");
 
         let ty = syn::parse_str("Vec<String>").unwrap();
         let helper = ArgHelper::new(&ty);
         assert_eq!(to_string(&helper.arg_type), "& [String]");
-        assert_eq!(to_string(&helper.getter_return), "[String]");
+        assert_eq!(to_string(&helper.getter_return), "& [String]");
         assert_eq!(helper.arg_into_field_suffix.to_string(), ". to_vec ()");
 
         let ty = syn::parse_str("Option<String>").unwrap();
         let helper = ArgHelper::new(&ty);
         assert_eq!(to_string(&helper.arg_type), "Option < String >");
-        assert_eq!(to_string(&helper.getter_return), "Option < String >");
+        assert_eq!(to_string(&helper.getter_return), "Option < & String >");
         assert_eq!(helper.arg_into_field_suffix.to_string(), "");
+
+        let ty = syn::parse_str("bool").unwrap();
+        let helper = ArgHelper::new(&ty);
+        assert_eq!(to_string(&helper.arg_type), "bool");
+        assert_eq!(to_string(&helper.getter_return), "bool");
     }
 }

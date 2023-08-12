@@ -14,7 +14,7 @@ pub fn stamps_impl(args: TokenStream, input: TokenStream) -> TokenStream {
     let name = &input.ident;
     let data = match &input.data {
         syn::Data::Struct(s) => &s.fields,
-        _ => panic!("#[stamped] can only be used with structs"),
+        _ => panic!("#[stamps] can only be used with structs"),
     };
     let input_attrs = input.attrs;
     let input_vis = input.vis;
@@ -30,7 +30,7 @@ pub fn stamps_impl(args: TokenStream, input: TokenStream) -> TokenStream {
                 #vis #name: #ty,
             }
         }),
-        _ => panic!("stamped can only be used with structs with named fields"),
+        _ => panic!("stamps can only be used on structs with named fields"),
     };
     let (stamp_idents, stamp_types) = stamps.into_fields();
 
