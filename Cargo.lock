@@ -181,13 +181,13 @@ dependencies = [
 
 [[package]]
 name = "cypher-dto"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "cypher-dto-macros",
  "lenient_semver",
  "neo4j_testcontainers",
- "neo4rs",
+ "neo4rs 0.6.2",
  "pretty_env_logger",
  "serde",
  "testcontainers",
@@ -198,7 +198,7 @@ dependencies = [
 
 [[package]]
 name = "cypher-dto-macros"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "convert_case",
  "quote",
@@ -313,7 +313,7 @@ dependencies = [
  "cypher-dto",
  "lenient_semver",
  "neo4j_testcontainers",
- "neo4rs",
+ "neo4rs 0.7.0-alpha.1",
  "pretty_env_logger",
  "testcontainers",
  "tokio",
@@ -648,6 +648,27 @@ dependencies = [
 
 [[package]]
 name = "neo4rs"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1f1d8019cfd20115fd664e4e1ecdf144ab4fce8bf7f7ddc7b6523a8835a770a2"
+dependencies = [
+ "async-trait",
+ "bytes",
+ "chrono",
+ "deadpool",
+ "futures",
+ "log",
+ "neo4rs-macros 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pin-project-lite",
+ "thiserror",
+ "tokio",
+ "tokio-rustls",
+ "url",
+ "webpki-roots",
+]
+
+[[package]]
+name = "neo4rs"
 version = "0.7.0-alpha.1"
 source = "git+https://github.com/neo4j-labs/neo4rs.git?rev=0bd8099017d3ad57a844c9a456e7aaaca5e4721e#0bd8099017d3ad57a844c9a456e7aaaca5e4721e"
 dependencies = [
@@ -657,7 +678,7 @@ dependencies = [
  "deadpool",
  "futures",
  "log",
- "neo4rs-macros",
+ "neo4rs-macros 0.2.1 (git+https://github.com/neo4j-labs/neo4rs.git?rev=0bd8099017d3ad57a844c9a456e7aaaca5e4721e)",
  "pin-project-lite",
  "serde",
  "thiserror",
@@ -665,6 +686,16 @@ dependencies = [
  "tokio-rustls",
  "url",
  "webpki-roots",
+]
+
+[[package]]
+name = "neo4rs-macros"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2cf52bfa6042343585f458f38f18094a53e8d8c417221867918e9f0a6885f42a"
+dependencies = [
+ "quote",
+ "syn 1.0.109",
 ]
 
 [[package]]
