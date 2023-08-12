@@ -37,6 +37,17 @@ mod tests {
         let p = p.into_builder().name("name2").build().unwrap();
         assert_eq!(p.name(), "name2");
         assert_eq!(p.colors(), &["red", "blue"]);
+        assert_eq!(p.age(), Some(42));
+        let now = chrono::Utc::now();
+        assert_eq!(
+            p.clone()
+                .into_builder()
+                .created_at(Some(now))
+                .build()
+                .unwrap()
+                .created_at(),
+            Some(&now),
+        );
         let id: PersonId = p.identifier();
         let _ = Knows.create(
             RelationBound::Create(&p),

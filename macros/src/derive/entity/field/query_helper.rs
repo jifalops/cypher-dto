@@ -126,11 +126,10 @@ pub fn add_value_to_params(
             }
         }
         FieldType::OptionOther(_ty) => {
-            // Options are `Copy`
             quote!(
                 query.param(
                     &::cypher_dto::format_param(#name, prefix),
-                    self.#ident
+                    self.#ident.clone()
                 )
             )
         }

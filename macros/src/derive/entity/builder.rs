@@ -9,8 +9,13 @@ pub fn impl_builder(entity: &Entity) -> TokenStream {
     let (idents, types, names, comments, _into_params, _from_boltmaps) = entity.fields.to_vectors();
 
     let mut opt_types = Vec::new();
-    let (arg_types, arg_converts, _without_amps) =
-        ArgHelper::unzip(types.iter().map(|t| ArgHelper::new(t.as_type())).collect());
+    let (
+        arg_type,
+        arg_into_field_suffix,
+        _getter_return,
+        _field_into_getter_prefix_amp,
+        _field_into_getter_suffix,
+    ) = ArgHelper::unzip(types.iter().map(|t| ArgHelper::new(t.as_type())).collect());
 
     let mut assignments = Vec::new();
     let mut from_entity = Vec::new();
@@ -20,7 +25,7 @@ pub fn impl_builder(entity: &Entity) -> TokenStream {
         let id = idents[index];
         let name = names[index];
         let ty = types[index];
-        let arg_convert = &arg_converts[index];
+        let arg_convert = &arg_into_field_suffix[index];
         match ty.is_option() {
             true => {
                 opt_types.push(ty.as_type().clone());
@@ -58,7 +63,7 @@ pub fn impl_builder(entity: &Entity) -> TokenStream {
             }
             #(
                 #( #comments )*
-                pub fn #idents(mut self, #idents: #arg_types) -> Self {
+                pub fn #idents(mut self, #idents: #arg_type) -> Self {
                     self.#idents = #assignments;
                     self
                 }
