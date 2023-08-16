@@ -1,10 +1,13 @@
 # cypher-dto
 
+[![Crates.io](https://img.shields.io/crates/v/cypher-dto)](https://crates.io/crates/cypher-dto)
+[![Github.com](https://github.com/jifalops/cypher-dto/actions/workflows/rust.yml/badge.svg)](https://github.com/jifalops/cypher-dto/actions/workflows/rust.yml)
+[![Docs.rs](https://docs.rs/cypher-dto/badge.svg)](https://docs.rs/cypher-dto)
+![License](https://img.shields.io/crates/l/cypher-dto.svg)
+
 A collection of traits and macros for working Data Transfer Objects (DTOs) in Neo4j.
 
-```sh
-cargo add cypher-dto #--features serde
-```
+
 
 ## Examples
 
@@ -37,6 +40,7 @@ let mut query = Query::new(format!(
 ));
 query = person.add_values_to_params(query);
 ```
+
 ```rust
 #[relation]
 struct Knows;
