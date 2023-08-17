@@ -66,15 +66,11 @@ impl Entity {
         let new_and_getters = new_and_getters::impl_new_and_getters(self);
 
         quote! {
-            use ::cypher_dto::Entity as _;
-            use ::cypher_dto::QueryFields as _;
-
             impl ::cypher_dto::Entity for #struct_ident {
                 fn typename() -> &'static str {
                     #struct_name
                 }
-            }
-            impl ::cypher_dto::QueryFields for #struct_ident {
+
                 fn field_names() -> &'static [&'static str] {
                     &[#(#names),*]
                 }
