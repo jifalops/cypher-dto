@@ -1,7 +1,5 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::{
-    format_param, Entity, Error, Neo4jMap, QueryFields, RelationEntity, RelationId, StampMode,
-};
+use cypher_dto::{format_param, Entity, Error, Neo4jMap, RelationEntity, RelationId, StampMode};
 use neo4rs::{Query, Relation, Row, UnboundedRelation};
 
 /// A relation with an ID field.
@@ -15,8 +13,7 @@ impl Entity for WorkedAt {
     fn typename() -> &'static str {
         "WORKED_AT"
     }
-}
-impl QueryFields for WorkedAt {
+
     fn field_names() -> &'static [&'static str] {
         &["until"]
     }
@@ -36,9 +33,7 @@ impl TryFrom<Row> for WorkedAt {
 impl RelationEntity for WorkedAt {
     type Id = WorkedAtId;
     fn identifier(&self) -> Self::Id {
-        WorkedAtId {
-            until: self.until,
-        }
+        WorkedAtId { until: self.until }
     }
 }
 impl TryFrom<Relation> for WorkedAt {
@@ -71,9 +66,7 @@ impl RelationId for WorkedAtId {
 }
 impl From<WorkedAt> for WorkedAtId {
     fn from(value: WorkedAt) -> Self {
-        WorkedAtId {
-            until: value.until,
-        }
+        WorkedAtId { until: value.until }
     }
 }
 impl TryFrom<Relation> for WorkedAtId {
@@ -96,8 +89,7 @@ impl Entity for WorkedAtId {
     fn typename() -> &'static str {
         WorkedAt::typename()
     }
-}
-impl QueryFields for WorkedAtId {
+
     fn field_names() -> &'static [&'static str] {
         &["until"]
     }

@@ -30,7 +30,7 @@ mod stamps;
 #[cfg(feature = "macros")]
 pub use cypher_dto_macros::*;
 
-pub use entity::{Entity, QueryFields, StampMode};
+pub use entity::{Entity, StampMode};
 pub use error::Error;
 pub use format::{format_param, format_query_fields};
 pub use node::{NodeEntity, NodeId};

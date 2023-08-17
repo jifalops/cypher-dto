@@ -1,4 +1,4 @@
-use cypher_dto::{Entity, Error, QueryFields, RelationEntity, RelationId, StampMode};
+use cypher_dto::{Entity, Error, RelationEntity, RelationId, StampMode};
 use neo4rs::{Query, Relation, Row, UnboundedRelation};
 
 /// A fieldless relation.
@@ -8,8 +8,7 @@ impl Entity for WorksAt {
     fn typename() -> &'static str {
         "WORKS_AT"
     }
-}
-impl QueryFields for WorksAt {
+
     fn field_names() -> &'static [&'static str] {
         &[]
     }
@@ -71,8 +70,7 @@ impl Entity for WorksAtId {
     fn typename() -> &'static str {
         WorksAt::typename()
     }
-}
-impl QueryFields for WorksAtId {
+
     fn field_names() -> &'static [&'static str] {
         &[]
     }
