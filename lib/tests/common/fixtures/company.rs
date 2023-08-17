@@ -1,7 +1,5 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::{
-    format_param, Entity, Error, Neo4jMap, NodeEntity, NodeId, QueryFields, StampMode,
-};
+use cypher_dto::{format_param, Entity, Error, Neo4jMap, NodeEntity, NodeId, StampMode};
 use neo4rs::{Node, Query, Row};
 
 /// Has a multi-valued ID and required timestamps.
@@ -16,8 +14,7 @@ impl Entity for Company {
     fn typename() -> &'static str {
         "Company"
     }
-}
-impl QueryFields for Company {
+
     fn field_names() -> &'static [&'static str] {
         &["name", "state", "created", "updated"]
     }
@@ -121,8 +118,7 @@ impl Entity for CompanyId {
     fn typename() -> &'static str {
         Company::typename()
     }
-}
-impl QueryFields for CompanyId {
+
     fn field_names() -> &'static [&'static str] {
         &["name", "state"]
     }

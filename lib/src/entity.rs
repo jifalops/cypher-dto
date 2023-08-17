@@ -2,22 +2,10 @@ use crate::{format_query_fields, Stamps};
 use neo4rs::{Query, Row};
 
 /// A named collection of [QueryFields], such as a node or relationship.
-pub trait Entity: QueryFields {
+pub trait Entity: TryFrom<Row> {
     /// The primary label for a node, or the type of a relationship.
     fn typename() -> &'static str;
 
-    /// Formatted like `typename() { as_query_fields() }`, or for a fieldless relationship, just `typename()`.
-    fn as_query_obj(prefix: Option<&str>, mode: StampMode) -> String {
-        let fields = Self::as_query_fields(prefix, mode);
-        if fields.is_empty() {
-            return Self::typename().to_owned();
-        }
-        format!("{} {{ {} }}", Self::typename(), fields)
-    }
-}
-
-/// A collection of fields to be used in a cypher query.
-pub trait QueryFields: TryFrom<Row> {
     /// The fields in this set.
     fn field_names() -> &'static [&'static str];
 
@@ -46,6 +34,15 @@ pub trait QueryFields: TryFrom<Row> {
 
     /// Adds all field values to the query parameters, matching placeholders in [as_query_fields].
     fn add_values_to_params(&self, query: Query, prefix: Option<&str>, mode: StampMode) -> Query;
+
+    /// Formatted like `typename() { as_query_fields() }`, or for a fieldless relationship, just `typename()`.
+    fn as_query_obj(prefix: Option<&str>, mode: StampMode) -> String {
+        let fields = Self::as_query_fields(prefix, mode);
+        if fields.is_empty() {
+            return Self::typename().to_owned();
+        }
+        format!("{} {{ {} }}", Self::typename(), fields)
+    }
 }
 
 /// Controls which timestamps are hardcoded in a query (e.g. `datetime()`),
@@ -113,8 +110,7 @@ pub(crate) mod tests {
         fn typename() -> &'static str {
             "Foo"
         }
-    }
-    impl QueryFields for Foo {
+
         fn field_names() -> &'static [&'static str] {
             &["name", "age"]
         }
@@ -149,8 +145,7 @@ pub(crate) mod tests {
         fn typename() -> &'static str {
             "Bar"
         }
-    }
-    impl QueryFields for Bar {
+
         fn field_names() -> &'static [&'static str] {
             &["created", "updated"]
         }
@@ -197,8 +192,7 @@ pub(crate) mod tests {
         fn typename() -> &'static str {
             "BAZ"
         }
-    }
-    impl QueryFields for Baz {
+
         fn field_names() -> &'static [&'static str] {
             &[]
         }
@@ -426,8 +420,7 @@ pub(crate) mod tests {
         fn typename() -> &'static str {
             "NumTypes"
         }
-    }
-    impl QueryFields for NumTypes {
+
         fn field_names() -> &'static [&'static str] {
             &[
                 "usize_num",

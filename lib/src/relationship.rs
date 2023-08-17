@@ -1,4 +1,4 @@
-use crate::{Entity, NodeEntity, NodeId, QueryFields, StampMode};
+use crate::{Entity, NodeEntity, NodeId, StampMode};
 use neo4rs::{Query, Relation, UnboundedRelation};
 
 /// A relationship [Entity].

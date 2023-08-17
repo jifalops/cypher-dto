@@ -1,7 +1,5 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::{
-    format_param, Entity, Error, Neo4jMap, QueryFields, RelationEntity, RelationId, StampMode,
-};
+use cypher_dto::{format_param, Entity, Error, Neo4jMap, RelationEntity, RelationId, StampMode};
 use neo4rs::{Query, Relation, Row, UnboundedRelation};
 
 /// A relation with an ID field.
@@ -15,8 +13,7 @@ impl Entity for WorkedAt {
     fn typename() -> &'static str {
         "WORKED_AT"
     }
-}
-impl QueryFields for WorkedAt {
+
     fn field_names() -> &'static [&'static str] {
         &["until"]
     }
@@ -92,8 +89,7 @@ impl Entity for WorkedAtId {
     fn typename() -> &'static str {
         WorkedAt::typename()
     }
-}
-impl QueryFields for WorkedAtId {
+
     fn field_names() -> &'static [&'static str] {
         &["until"]
     }
