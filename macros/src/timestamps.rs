@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use proc_macro::TokenStream;
-use quote::{__private::TokenStream as TokenStream2, format_ident, quote};
+use quote::{format_ident, quote};
 use syn::{
     parse::{Parse, ParseStream},
     parse_macro_input, parse_quote, DeriveInput, Fields, Ident, LitStr, Result as SynResult, Type,
@@ -14,7 +14,7 @@ pub fn stamps_impl(args: TokenStream, input: TokenStream) -> TokenStream {
     let name = &input.ident;
     let data = match &input.data {
         syn::Data::Struct(s) => &s.fields,
-        _ => panic!("#[stamps] can only be used with structs"),
+        _ => panic!("#[timestamps] can only be used with structs"),
     };
     let input_attrs = input.attrs;
     let input_vis = input.vis;
@@ -30,7 +30,7 @@ pub fn stamps_impl(args: TokenStream, input: TokenStream) -> TokenStream {
                 #vis #name: #ty,
             }
         }),
-        _ => panic!("stamps can only be used on structs with named fields"),
+        _ => panic!("#[timestamps] can only be used on structs with named fields"),
     };
     let (stamp_idents, stamp_types) = stamps.into_fields();
 
@@ -74,7 +74,7 @@ impl TryFrom<&str> for Stamps {
             "updated_at" => Ok(Stamps::UpdatedAt),
             "full" => Ok(Stamps::Full),
             "short" => Ok(Stamps::Short),
-            _ => Err(format!("Invalid `#[stamps]` argument: \"{}\". Allowed: full, short, created, updated, created_at, updated_at.", s).into()),
+            _ => Err(format!("Invalid `#[timestamps]` argument: \"{}\". Allowed: full, short, created, updated, created_at, updated_at.", s).into()),
         }
     }
 }
@@ -111,21 +111,5 @@ impl Stamps {
         }
 
         (idents, types)
-    }
-
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Stamps::Created => "created",
-            Stamps::Updated => "updated",
-            Stamps::CreatedAt => "created_at",
-            Stamps::UpdatedAt => "updated_at",
-            Stamps::Full => "full",
-            Stamps::Short => "short",
-        }
-    }
-
-    pub fn into_attribute(self) -> TokenStream2 {
-        let s = self.as_str();
-        quote!(#[stamps(#s)])
     }
 }
