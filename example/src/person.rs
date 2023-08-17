@@ -1,7 +1,9 @@
-use cypher_dto::{node, relation, stamps};
+use cypher_dto::{timestamps, Node, Relation};
 
 /// Single ID field and optional timestamps. Has example of `new()` and `into_builder()` methods.
-#[node(stamps, name = "Person2")]
+#[timestamps]
+#[derive(Node, Clone)]
+#[name = "Person2"]
 pub struct Person {
     id: String,
     #[name = "name2"]
@@ -11,12 +13,12 @@ pub struct Person {
     colors: Vec<String>,
 }
 
-#[relation]
+#[derive(Relation)]
 struct Knows;
 
 #[cfg(test)]
 mod tests {
-    use cypher_dto::{NodeEntity, RelationBound};
+    use cypher_dto::{Entity, NodeEntity, RelationBound, RelationEntity};
 
     use super::*;
 
@@ -34,17 +36,17 @@ mod tests {
             &["red".to_owned(), "blue".to_owned()],
         );
         assert_eq!(p.id(), "id");
-        let p = p.into_builder().name("name2").build().unwrap();
+        let p = p.into_builder().name("name2").build();
         assert_eq!(p.name(), "name2");
         assert_eq!(p.colors(), &["red", "blue"]);
         assert_eq!(p.age(), Some(42));
         let now = chrono::Utc::now();
+
         assert_eq!(
             p.clone()
                 .into_builder()
                 .created_at(Some(now))
                 .build()
-                .unwrap()
                 .created_at(),
             Some(&now),
         );
