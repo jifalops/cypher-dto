@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::{format_param, Entity, Error, Neo4jMap, NodeEntity, NodeId, StampMode};
+use cypher_dto::{format_param, Error, FieldSet, Neo4jMap, NodeEntity, NodeId, StampMode};
 use neo4rs::{Node, Query, Row};
 
 /// Has a multi-valued ID and required timestamps.
@@ -10,7 +10,7 @@ pub struct Company {
     pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
 }
-impl Entity for Company {
+impl FieldSet for Company {
     fn typename() -> &'static str {
         "Company"
     }
@@ -114,7 +114,7 @@ impl TryFrom<Node> for CompanyId {
         })
     }
 }
-impl Entity for CompanyId {
+impl FieldSet for CompanyId {
     fn typename() -> &'static str {
         Company::typename()
     }

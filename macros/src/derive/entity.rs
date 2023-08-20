@@ -66,7 +66,7 @@ impl Entity {
         let new_and_getters = new_and_getters::impl_new_and_getters(self);
 
         quote! {
-            impl ::cypher_dto::Entity for #struct_ident {
+            impl ::cypher_dto::FieldSet for #struct_ident {
                 fn typename() -> &'static str {
                     #struct_name
                 }

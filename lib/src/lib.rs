@@ -19,6 +19,7 @@
 //!
 //! Dynamically added methods:
 //! 1. `fn into_values(self)` - returns a tuple of all the values in the struct.
+#![warn(missing_docs)]
 
 mod entity;
 mod error;
@@ -30,7 +31,7 @@ mod stamps;
 #[cfg(feature = "macros")]
 pub use cypher_dto_macros::*;
 
-pub use entity::{Entity, StampMode};
+pub use entity::{FieldSet, StampMode};
 pub use error::Error;
 pub use format::{format_param, format_query_fields};
 pub use node::{NodeEntity, NodeId};

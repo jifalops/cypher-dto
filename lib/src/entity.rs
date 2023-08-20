@@ -1,8 +1,10 @@
 use crate::{format_query_fields, Stamps};
 use neo4rs::{Query, Row};
 
-/// A named collection of [QueryFields], such as a node or relationship.
-pub trait Entity: TryFrom<Row> {
+/// The full or partial fields on a node or relationship that may have timestamps.
+///
+/// This is the basic unit of query building used by [NodeEntity], [NodeId], [RelationEntity], and [RelationId].
+pub trait FieldSet: TryFrom<Row> {
     /// The primary label for a node, or the type of a relationship.
     fn typename() -> &'static str;
 
@@ -32,7 +34,7 @@ pub trait Entity: TryFrom<Row> {
         [other_fields, stamps].join(", ")
     }
 
-    /// Adds all field values to the query parameters, matching placeholders in [as_query_fields].
+    /// Adds all field values to the query parameters, matching placeholders in [as_query_fields()].
     fn add_values_to_params(&self, query: Query, prefix: Option<&str>, mode: StampMode) -> Query;
 
     /// Formatted like `typename() { as_query_fields() }`, or for a fieldless relationship, just `typename()`.
@@ -106,7 +108,7 @@ pub(crate) mod tests {
     //
     // Foo impl
     //
-    impl Entity for Foo {
+    impl FieldSet for Foo {
         fn typename() -> &'static str {
             "Foo"
         }
@@ -141,7 +143,7 @@ pub(crate) mod tests {
     //
     // Bar impl
     //
-    impl Entity for Bar {
+    impl FieldSet for Bar {
         fn typename() -> &'static str {
             "Bar"
         }
@@ -188,7 +190,7 @@ pub(crate) mod tests {
     //
     // Baz impl
     //
-    impl Entity for Baz {
+    impl FieldSet for Baz {
         fn typename() -> &'static str {
             "BAZ"
         }
@@ -416,7 +418,7 @@ pub(crate) mod tests {
             }
         }
     }
-    impl Entity for NumTypes {
+    impl FieldSet for NumTypes {
         fn typename() -> &'static str {
             "NumTypes"
         }
