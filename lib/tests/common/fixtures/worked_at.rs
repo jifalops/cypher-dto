@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::{format_param, Entity, Error, Neo4jMap, RelationEntity, RelationId, StampMode};
+use cypher_dto::{format_param, Error, FieldSet, Neo4jMap, RelationEntity, RelationId, StampMode};
 use neo4rs::{Query, Relation, Row, UnboundedRelation};
 
 /// A relation with an ID field.
@@ -9,7 +9,7 @@ use neo4rs::{Query, Relation, Row, UnboundedRelation};
 pub struct WorkedAt {
     pub until: DateTime<Utc>,
 }
-impl Entity for WorkedAt {
+impl FieldSet for WorkedAt {
     fn typename() -> &'static str {
         "WORKED_AT"
     }
@@ -85,7 +85,7 @@ impl TryFrom<UnboundedRelation> for WorkedAtId {
         })
     }
 }
-impl Entity for WorkedAtId {
+impl FieldSet for WorkedAtId {
     fn typename() -> &'static str {
         WorkedAt::typename()
     }

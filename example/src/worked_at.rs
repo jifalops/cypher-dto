@@ -14,7 +14,7 @@ pub struct WorkedAt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cypher_dto::{Entity, StampMode};
+    use cypher_dto::{FieldSet, StampMode};
 
     #[test]
     fn rename() {

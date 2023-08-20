@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::{format_param, Entity, Error, Neo4jMap, NodeEntity, NodeId, StampMode};
+use cypher_dto::{format_param, Error, FieldSet, Neo4jMap, NodeEntity, NodeId, StampMode};
 use neo4rs::{Node, Query, Row};
 
 /// Single ID field and optional timestamps. Has example of `new()` and `into_builder()` methods.
@@ -40,7 +40,7 @@ impl Person {
         self.into()
     }
 }
-impl Entity for Person {
+impl FieldSet for Person {
     fn typename() -> &'static str {
         "Person"
     }
@@ -151,7 +151,7 @@ impl TryFrom<Node> for PersonId {
         })
     }
 }
-impl Entity for PersonId {
+impl FieldSet for PersonId {
     fn typename() -> &'static str {
         Person::typename()
     }

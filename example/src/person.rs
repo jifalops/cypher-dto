@@ -18,7 +18,7 @@ struct Knows;
 
 #[cfg(test)]
 mod tests {
-    use cypher_dto::{Entity, NodeEntity, RelationBound, RelationEntity};
+    use cypher_dto::{FieldSet, NodeEntity, RelationBound, RelationEntity};
 
     use super::*;
 

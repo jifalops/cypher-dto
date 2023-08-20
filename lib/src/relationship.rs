@@ -1,8 +1,8 @@
-use crate::{Entity, NodeEntity, NodeId, StampMode};
+use crate::{FieldSet, NodeEntity, NodeId, StampMode};
 use neo4rs::{Query, Relation, UnboundedRelation};
 
 /// A relationship [Entity].
-pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation> {
+pub trait RelationEntity: FieldSet + TryFrom<Relation> + TryFrom<UnboundedRelation> {
     type Id: RelationId<T = Self>;
 
     fn identifier(&self) -> Self::Id;
@@ -85,7 +85,7 @@ pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation
 
 /// The identifying fields of a [RelationEntity].
 pub trait RelationId:
-    Entity + From<Self::T> + TryFrom<Relation> + TryFrom<UnboundedRelation>
+    FieldSet + From<Self::T> + TryFrom<Relation> + TryFrom<UnboundedRelation>
 {
     type T: RelationEntity;
 
