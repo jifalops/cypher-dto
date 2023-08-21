@@ -19,7 +19,7 @@ mod tests {
     #[test]
     fn rename() {
         assert_eq!(
-            WorkedAt::as_query_fields(None, StampMode::Read),
+            WorkedAt::to_query_fields(None, StampMode::Read),
             "foo: $foo"
         );
     }
