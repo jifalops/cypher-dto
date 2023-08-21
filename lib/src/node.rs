@@ -22,7 +22,7 @@ pub trait NodeEntity: FieldSet + TryFrom<Node> {
     fn create(&self) -> Query {
         let q = Query::new(format!(
             "CREATE (n:{})",
-            Self::as_query_obj(None, StampMode::Create),
+            Self::to_query_obj(None, StampMode::Create),
         ));
         self.add_values_to_params(q, None, StampMode::Create)
     }
@@ -33,8 +33,8 @@ pub trait NodeEntity: FieldSet + TryFrom<Node> {
     fn update(&self) -> Query {
         let q = Query::new(format!(
             "MATCH (n:{}) SET n += {{ {} }}",
-            Self::Id::as_query_obj(None, StampMode::Read),
-            Self::as_query_fields(None, StampMode::Update),
+            Self::Id::to_query_obj(None, StampMode::Read),
+            Self::to_query_fields(None, StampMode::Update),
         ));
         self.add_values_to_params(q, None, StampMode::Update)
     }
@@ -48,7 +48,7 @@ pub trait NodeId: FieldSet + From<Self::T> + TryFrom<Node> {
     fn read(&self) -> Query {
         let q = Query::new(format!(
             "MATCH (n:{}) RETURN n",
-            Self::as_query_obj(None, StampMode::Read)
+            Self::to_query_obj(None, StampMode::Read)
         ));
         self.add_values_to_params(q, None, StampMode::Read)
     }
@@ -57,7 +57,7 @@ pub trait NodeId: FieldSet + From<Self::T> + TryFrom<Node> {
     fn delete(&self) -> Query {
         let q = Query::new(format!(
             "MATCH (n:{}) DETACH DELETE n",
-            Self::as_query_obj(None, StampMode::Read)
+            Self::to_query_obj(None, StampMode::Read)
         ));
         self.add_values_to_params(q, None, StampMode::Read)
     }

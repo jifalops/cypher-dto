@@ -1,5 +1,4 @@
-//! A low-level abstraction for working with serialization, storage, and IPC.
-//! [Data Transfer Object](https://en.wikipedia.org/wiki/Data_transfer_object)
+//! A collection of traits and macros for working Data Transfer Objects (DTOs) Cypher and Neo4j.
 //!
 //! It works with key-value pairs; only structs with named fields are supported.
 //!
@@ -19,7 +18,9 @@
 //!
 //! Dynamically added methods:
 //! 1. `fn into_values(self)` - returns a tuple of all the values in the struct.
+
 #![warn(missing_docs)]
+#![deny(rustdoc::broken_intra_doc_links)]
 
 mod entity;
 mod error;
@@ -29,7 +30,7 @@ mod relationship;
 mod stamps;
 
 #[cfg(feature = "macros")]
-pub use cypher_dto_macros::*;
+pub use cypher_dto_macros::{timestamps, Node, Relation};
 
 pub use entity::{FieldSet, StampMode};
 pub use error::Error;

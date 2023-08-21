@@ -21,7 +21,7 @@ pub trait FieldSet: TryFrom<Row> {
     /// `struct Foo { bar: u8 }` would be `bar: $bar`.
     ///
     /// Prefixes apply to the placeholders only (e.g. bar: $prefix_bar).
-    fn as_query_fields(prefix: Option<&str>, mode: StampMode) -> String {
+    fn to_query_fields(prefix: Option<&str>, mode: StampMode) -> String {
         let (stamps, other_fields) = Self::timestamps();
         let stamps = stamps.as_query_fields(prefix, mode);
         let other_fields = format_query_fields(other_fields, prefix);
@@ -38,8 +38,8 @@ pub trait FieldSet: TryFrom<Row> {
     fn add_values_to_params(&self, query: Query, prefix: Option<&str>, mode: StampMode) -> Query;
 
     /// Formatted like `typename() { as_query_fields() }`, or for a fieldless relationship, just `typename()`.
-    fn as_query_obj(prefix: Option<&str>, mode: StampMode) -> String {
-        let fields = Self::as_query_fields(prefix, mode);
+    fn to_query_obj(prefix: Option<&str>, mode: StampMode) -> String {
+        let fields = Self::to_query_fields(prefix, mode);
         if fields.is_empty() {
             return Self::typename().to_owned();
         }
@@ -63,28 +63,6 @@ pub enum StampMode {
     /// Applies to both [Stamps::Updated] and [Stamps::Both].
     Update,
 }
-
-// /// An observable for working with [QueryFields] and [neo4rs::Query]s.
-// pub struct QueryBuilder {
-//     parts: Vec<String>,
-//     params: HashSet<String>,
-// }
-// impl QueryBuilder {
-//     pub fn new() -> Self {
-//         Self {
-//             parts: Vec::new(),
-//             params: HashSet::new(),
-//         }
-//     }
-//     pub fn add(&mut self, s: &str, params: &[&str]) -> &Self {
-//         self.parts.push(s.to_owned());
-//         self.params.extend(params.iter().map(|p| (*p).to_owned()));
-//         self
-//     }
-//     pub fn build(self) -> (String, HashSet<String>) {
-//         (self.parts.join(" "), self.params)
-//     }
-// }
 
 #[cfg(test)]
 pub(crate) mod tests {
@@ -214,24 +192,24 @@ pub(crate) mod tests {
     fn as_obj() {
         // Foo
         assert_eq!(
-            Foo::as_query_obj(None, StampMode::Read),
+            Foo::to_query_obj(None, StampMode::Read),
             "Foo { name: $name, age: $age }"
         );
         // Bar
         assert_eq!(
-            Bar::as_query_obj(None, StampMode::Read),
+            Bar::to_query_obj(None, StampMode::Read),
             "Bar { created: $created, updated: $updated }"
         );
         assert_eq!(
-            Bar::as_query_obj(None, StampMode::Create),
+            Bar::to_query_obj(None, StampMode::Create),
             "Bar { created: datetime(), updated: datetime() }"
         );
         assert_eq!(
-            Bar::as_query_obj(None, StampMode::Update),
+            Bar::to_query_obj(None, StampMode::Update),
             "Bar { created: $created, updated: datetime() }"
         );
         // Baz
-        assert_eq!(Baz::as_query_obj(None, StampMode::Read), "BAZ");
+        assert_eq!(Baz::to_query_obj(None, StampMode::Read), "BAZ");
     }
 
     #[test]
@@ -249,7 +227,7 @@ pub(crate) mod tests {
         // Foo
         let mut q = Query::new(format!(
             "CREATE (n:{})",
-            Foo::as_query_obj(None, StampMode::Create)
+            Foo::to_query_obj(None, StampMode::Create)
         ));
         q = foo.add_values_to_params(q, None, StampMode::Create);
         assert!(q.has_param_key("name"));
@@ -258,7 +236,7 @@ pub(crate) mod tests {
         // Bar
         let mut q = Query::new(format!(
             "MATCH (n:{})",
-            Bar::as_query_obj(None, StampMode::Read)
+            Bar::to_query_obj(None, StampMode::Read)
         ));
         q = bar.add_values_to_params(q, None, StampMode::Read);
         assert!(q.has_param_key("created"));
@@ -266,7 +244,7 @@ pub(crate) mod tests {
 
         let mut q = Query::new(format!(
             "CREATE (n:{})",
-            Bar::as_query_obj(None, StampMode::Create)
+            Bar::to_query_obj(None, StampMode::Create)
         ));
         q = bar.add_values_to_params(q, None, StampMode::Create);
         assert!(!q.has_param_key("created"));
@@ -274,7 +252,7 @@ pub(crate) mod tests {
 
         let mut q = Query::new(format!(
             "MERGE (n:{})",
-            Bar::as_query_obj(None, StampMode::Update)
+            Bar::to_query_obj(None, StampMode::Update)
         ));
         q = bar.add_values_to_params(q, None, StampMode::Update);
         assert!(q.has_param_key("created"));
@@ -285,9 +263,9 @@ pub(crate) mod tests {
             "MATCH (s:{})
             MATCH (e:{})
             CREATE (s)-[r:{}]->(e)",
-            Foo::as_query_obj(Some("s"), StampMode::Read),
-            Bar::as_query_obj(Some("e"), StampMode::Read),
-            Baz::as_query_obj(None, StampMode::Create),
+            Foo::to_query_obj(Some("s"), StampMode::Read),
+            Bar::to_query_obj(Some("e"), StampMode::Read),
+            Baz::to_query_obj(None, StampMode::Create),
         ));
         q = foo.add_values_to_params(q, Some("s"), StampMode::Read);
         q = bar.add_values_to_params(q, Some("e"), StampMode::Read);
@@ -332,7 +310,7 @@ pub(crate) mod tests {
         };
         let mut q = Query::new(format!(
             "CREATE (n:{})",
-            NumTypes::as_query_obj(None, StampMode::Create)
+            NumTypes::to_query_obj(None, StampMode::Create)
         ));
         q = num_types.add_values_to_params(q, None, StampMode::Create);
         assert!(q.has_param_key("usize_num"));
