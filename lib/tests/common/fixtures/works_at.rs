@@ -12,6 +12,12 @@ impl FieldSet for WorksAt {
     fn field_names() -> &'static [&'static str] {
         &[]
     }
+    fn as_query_fields() -> &'static str {
+        ""
+    }
+    fn as_query_obj() -> &'static str {
+        "WORKS_AT"
+    }
 
     fn add_values_to_params(&self, query: Query, _: Option<&str>, _: StampMode) -> Query {
         query
@@ -73,6 +79,12 @@ impl FieldSet for WorksAtId {
 
     fn field_names() -> &'static [&'static str] {
         &[]
+    }
+    fn as_query_fields() -> &'static str {
+        ""
+    }
+    fn as_query_obj() -> &'static str {
+        "WORKS_AT"
     }
     fn add_values_to_params(&self, query: Query, _prefix: Option<&str>, _mode: StampMode) -> Query {
         query

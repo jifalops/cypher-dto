@@ -18,7 +18,7 @@ struct Knows;
 
 #[cfg(test)]
 mod tests {
-    use cypher_dto::{FieldSet, NodeEntity, RelationBound, RelationEntity};
+    use cypher_dto::{FieldSet, NodeEntity, RelationBound, RelationEntity, StampMode};
 
     use super::*;
 
@@ -28,6 +28,18 @@ mod tests {
         assert_eq!(
             Person::field_names(),
             vec!["id", "name2", "age", "colors", "created_at", "updated_at"]
+        );
+        assert_eq!(
+            Person::as_query_fields(),
+            "id: $id, name2: $name2, age: $age, colors: $colors, created_at: $created_at, updated_at: $updated_at"
+        );
+        assert_eq!(
+            Person::as_query_obj(),
+            "Person2 { id: $id, name2: $name2, age: $age, colors: $colors, created_at: $created_at, updated_at: $updated_at }"
+        );
+        assert_eq!(
+            Person::as_query_obj(),
+            Person::to_query_obj(None, StampMode::Read)
         );
         let p = Person::new(
             "id",

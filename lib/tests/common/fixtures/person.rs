@@ -48,6 +48,12 @@ impl FieldSet for Person {
     fn field_names() -> &'static [&'static str] {
         &["id", "name", "age", "created_at", "updated_at"]
     }
+    fn as_query_fields() -> &'static str {
+        "id: $id, name: $name, age: $age, created_at: $created_at, updated_at: $updated_at"
+    }
+    fn as_query_obj() -> &'static str {
+        "Person { id: $id, name: $name, age: $age, created_at: $created_at, updated_at: $updated_at }"
+    }
     fn add_values_to_params(&self, mut q: Query, prefix: Option<&str>, mode: StampMode) -> Query {
         q = q.param(&format_param("id", prefix), self.id.clone());
         q = q.param(&format_param("name", prefix), self.name.clone());
@@ -158,6 +164,12 @@ impl FieldSet for PersonId {
 
     fn field_names() -> &'static [&'static str] {
         &["id"]
+    }
+    fn as_query_fields() -> &'static str {
+        "id: $id"
+    }
+    fn as_query_obj() -> &'static str {
+        "Person { id: $id }"
     }
     fn add_values_to_params(&self, query: Query, prefix: Option<&str>, _: StampMode) -> Query {
         query.param(&format_param("id", prefix), self.id.clone())
