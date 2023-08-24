@@ -30,8 +30,8 @@ pub trait RelationEntity: FieldSet + TryFrom<Relation> + TryFrom<UnboundedRelati
           {}
           CREATE (s)-[:{}]->(e)
           "###,
-            start.to_line("s"),
-            end.to_line("e"),
+            start.to_query_clause("s"),
+            end.to_query_clause("e"),
             Self::to_query_obj(None, StampMode::Create)
         );
         // trace!("creating relation: {}", q);
@@ -179,7 +179,8 @@ pub enum RelationBound<'a, T: NodeEntity> {
     // Merge(T),
 }
 impl<'a, T: NodeEntity> RelationBound<'a, T> {
-    pub fn to_line(&self, prefix: &str) -> String {
+    /// Returns a CREATE (node:...) or MATCH (node:...) clause for this variant.
+    pub fn to_query_clause(&self, prefix: &str) -> String {
         match self {
             RelationBound::Create(_) => format!(
                 "CREATE ({}:{})",
