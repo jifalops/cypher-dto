@@ -7,6 +7,9 @@
 //! an [dto::Identifier]. Identifiers are also DTOs, but they cannot have an
 //! Identifier themselves.
 //!
+#![doc = include_str!("../include/static_strings.rs")]
+#![doc = include_str!("../include/rename.rs")]
+//!
 //! The `derive` macro will implement [dto::WithId] on the attributed struct,
 //! and create a [dto::Identifier] struct named e.g. `FooId`. The ID struct will use the
 //! same [typename()] as the attributed struct, and include any fields that are
