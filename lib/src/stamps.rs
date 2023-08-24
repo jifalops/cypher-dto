@@ -60,8 +60,6 @@ impl Stamps {
     }
 
     /// Returns these timestamp fields as a query string, depending on the [StampMode].
-    ///
-    /// Similar to [QueryFields::as_query_fields], but with a Stamps instance.
     pub fn as_query_fields(&self, prefix: Option<&str>, mode: StampMode) -> String {
         if self == &Stamps::None {
             return "".to_owned();

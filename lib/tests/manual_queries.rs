@@ -34,11 +34,11 @@ async fn create_all_at_once() {
         CREATE (bob)-[w2:{}]->(acme)
         RETURN alice, bob, acme, w, w2
         ",
-        Person::as_query_obj(Some("alice"), StampMode::Create),
-        Person::as_query_obj(Some("bob"), StampMode::Create),
-        Company::as_query_obj(Some("acme"), StampMode::Create),
-        WorkedAt::as_query_obj(Some("w"), StampMode::Create),
-        WorkedAt::as_query_obj(Some("w2"), StampMode::Create),
+        Person::to_query_obj(Some("alice"), StampMode::Create),
+        Person::to_query_obj(Some("bob"), StampMode::Create),
+        Company::to_query_obj(Some("acme"), StampMode::Create),
+        WorkedAt::to_query_obj(Some("w"), StampMode::Create),
+        WorkedAt::to_query_obj(Some("w2"), StampMode::Create),
     ));
     q = alice.add_values_to_params(q, Some("alice"), StampMode::Create);
     q = bob.add_values_to_params(q, Some("bob"), StampMode::Create);
@@ -55,7 +55,7 @@ async fn create_all_at_once() {
     assert_eq!(alice.name(), alice_db.name());
     assert_eq!(alice.age(), alice_db.age());
 
-    let bob_db: Person = row.get::<Node>("bob").unwrap().try_into().unwrap();
+    let bob_db = Person::try_from(row.get::<Node>("bob").unwrap()).unwrap();
     assert_eq!(bob.id(), bob_db.id());
     assert_eq!(bob.name(), bob_db.name());
     assert_eq!(bob.age(), bob_db.age());

@@ -1,7 +1,5 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::{
-    format_param, Entity, Error, Neo4jMap, NodeEntity, NodeId, QueryFields, StampMode,
-};
+use cypher_dto::{format_param, Error, FieldSet, Neo4jMap, NodeEntity, NodeId, StampMode};
 use neo4rs::{Node, Query, Row};
 
 /// Has a multi-valued ID and required timestamps.
@@ -12,14 +10,21 @@ pub struct Company {
     pub created: DateTime<Utc>,
     pub updated: DateTime<Utc>,
 }
-impl Entity for Company {
+impl FieldSet for Company {
     fn typename() -> &'static str {
         "Company"
     }
-}
-impl QueryFields for Company {
+
     fn field_names() -> &'static [&'static str] {
         &["name", "state", "created", "updated"]
+    }
+
+    fn as_query_fields() -> &'static str {
+        "name: $name, state: $state, created: $created, updated: $updated"
+    }
+
+    fn as_query_obj() -> &'static str {
+        "Company { name: $name, state: $state, created: $created, updated: $updated }"
     }
 
     fn add_values_to_params(&self, mut q: Query, prefix: Option<&str>, mode: StampMode) -> Query {
@@ -117,14 +122,19 @@ impl TryFrom<Node> for CompanyId {
         })
     }
 }
-impl Entity for CompanyId {
+impl FieldSet for CompanyId {
     fn typename() -> &'static str {
         Company::typename()
     }
-}
-impl QueryFields for CompanyId {
+
     fn field_names() -> &'static [&'static str] {
         &["name", "state"]
+    }
+    fn as_query_fields() -> &'static str {
+        "name: $name, state: $state"
+    }
+    fn as_query_obj() -> &'static str {
+        "Company { name: $name, state: $state }"
     }
     fn add_values_to_params(&self, query: Query, prefix: Option<&str>, _: StampMode) -> Query {
         query

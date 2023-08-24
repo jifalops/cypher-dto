@@ -1,11 +1,20 @@
-use crate::{Entity, NodeEntity, NodeId, QueryFields, StampMode};
+use crate::{FieldSet, NodeEntity, NodeId, StampMode};
 use neo4rs::{Query, Relation, UnboundedRelation};
 
-/// A relationship [Entity].
-pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation> {
+/// A relationship entity.
+pub trait RelationEntity: FieldSet + TryFrom<Relation> + TryFrom<UnboundedRelation> {
     type Id: RelationId<T = Self>;
 
+    /// Get the [RelationId] for this entity.
+    ///
+    /// This is less efficient than using self.into(), but is useful when you
+    /// don't want to consume the entity.
+    ///
+    /// The implementation in derive will clone the individual ID fields as
+    /// necessary.
     fn identifier(&self) -> Self::Id;
+
+    /// Convenience method for `self.into()`.
     fn into_identifier(self) -> Self::Id {
         self.into()
     }
@@ -21,9 +30,9 @@ pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation
           {}
           CREATE (s)-[:{}]->(e)
           "###,
-            start.to_line("s"),
-            end.to_line("e"),
-            Self::as_query_obj(None, StampMode::Create)
+            start.to_query_clause("s"),
+            end.to_query_clause("e"),
+            Self::to_query_obj(None, StampMode::Create)
         );
         // trace!("creating relation: {}", q);
         let mut q = Query::new(q);
@@ -34,7 +43,7 @@ pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation
 
     /// Use only for relations that have one or more ID fields, otherwise use the other `update_` methods.
     ///
-    /// This will update all relations of the same type if [Id::field_names()] is empty.
+    /// This will update all relations of the same type if [FieldSet::field_names()] is empty.
     ///
     /// Treats the current values as the desired values and does a merge update (`SET r += ...`).
     ///
@@ -44,8 +53,8 @@ pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation
         let q = Query::new(format!(
             "MATCH ()-[r:{}]-()
              SET r += {{ {} }}",
-            Self::Id::as_query_obj(None, StampMode::Read),
-            Self::as_query_fields(None, StampMode::Update),
+            Self::Id::to_query_obj(None, StampMode::Read),
+            Self::to_query_fields(None, StampMode::Update),
         ));
         self.add_values_to_params(q, None, StampMode::Update)
     }
@@ -57,9 +66,9 @@ pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation
         let mut q = Query::new(format!(
             "MATCH (n:{})-[r:{}]-()
              SET r += {{ {} }}",
-            T::as_query_obj(Some("n"), StampMode::Read),
-            Self::Id::as_query_obj(None, StampMode::Read),
-            Self::as_query_fields(None, StampMode::Update),
+            T::to_query_obj(Some("n"), StampMode::Read),
+            Self::Id::to_query_obj(None, StampMode::Read),
+            Self::to_query_fields(None, StampMode::Update),
         ));
         q = from.add_values_to_params(q, Some("n"), StampMode::Read);
         self.add_values_to_params(q, None, StampMode::Update)
@@ -72,10 +81,10 @@ pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation
         let mut q = Query::new(format!(
             "MATCH (s:{})-[r:{}]-(e:{})
              SET r += {{ {} }}",
-            S::as_query_obj(Some("s"), StampMode::Read),
-            Self::Id::as_query_obj(None, StampMode::Read),
-            E::as_query_obj(Some("e"), StampMode::Read),
-            Self::as_query_fields(None, StampMode::Update),
+            S::to_query_obj(Some("s"), StampMode::Read),
+            Self::Id::to_query_obj(None, StampMode::Read),
+            E::to_query_obj(Some("e"), StampMode::Read),
+            Self::to_query_fields(None, StampMode::Update),
         ));
         q = start.add_values_to_params(q, Some("s"), StampMode::Read);
         q = end.add_values_to_params(q, Some("e"), StampMode::Read);
@@ -85,18 +94,18 @@ pub trait RelationEntity: Entity + TryFrom<Relation> + TryFrom<UnboundedRelation
 
 /// The identifying fields of a [RelationEntity].
 pub trait RelationId:
-    Entity + From<Self::T> + TryFrom<Relation> + TryFrom<UnboundedRelation>
+    FieldSet + From<Self::T> + TryFrom<Relation> + TryFrom<UnboundedRelation>
 {
-    type T: RelationEntity;
+    type T: RelationEntity<Id = Self>;
 
     /// Use only for relations that have one or more ID fields, otherwise use the other `read_` methods.
     ///
-    /// This will read all relations of the same type if [field_names()] is empty.
+    /// This will read all relations of the same type if [FieldSet::field_names()] is empty.
     fn read(&self) -> Query {
         assert!(!Self::field_names().is_empty());
         let q = Query::new(format!(
             "MATCH [r:{}] RETURN r",
-            Self::as_query_obj(None, StampMode::Read)
+            Self::to_query_obj(None, StampMode::Read)
         ));
         self.add_values_to_params(q, None, StampMode::Read)
     }
@@ -105,8 +114,8 @@ pub trait RelationId:
         let mut q = Query::new(format!(
             "MATCH (n:{})-[r:{}]-()
              RETURN r",
-            T::as_query_obj(Some("n"), StampMode::Read),
-            Self::as_query_obj(None, StampMode::Read)
+            T::to_query_obj(Some("n"), StampMode::Read),
+            Self::to_query_obj(None, StampMode::Read)
         ));
         q = from.add_values_to_params(q, Some("n"), StampMode::Read);
         self.add_values_to_params(q, None, StampMode::Read)
@@ -116,9 +125,9 @@ pub trait RelationId:
         let mut q = Query::new(format!(
             "MATCH (s:{})-[r:{}]-(e:{})
              RETURN r",
-            S::as_query_obj(Some("s"), StampMode::Read),
-            Self::as_query_obj(None, StampMode::Read),
-            E::as_query_obj(Some("e"), StampMode::Read),
+            S::to_query_obj(Some("s"), StampMode::Read),
+            Self::to_query_obj(None, StampMode::Read),
+            E::to_query_obj(Some("e"), StampMode::Read),
         ));
         q = start.add_values_to_params(q, Some("s"), StampMode::Read);
         q = end.add_values_to_params(q, Some("e"), StampMode::Read);
@@ -126,12 +135,12 @@ pub trait RelationId:
     }
     /// Use only for relations that have one or more ID fields, otherwise use the other `delete_` methods.
     ///
-    /// This will delete all relations of the same type if [field_names()] is empty.
+    /// This will delete all relations of the same type if [FieldSet::field_names()] is empty.
     fn delete(&self) -> Query {
         assert!(!Self::field_names().is_empty());
         let q = Query::new(format!(
             "MATCH [r:{}] DELETE r",
-            Self::as_query_obj(None, StampMode::Read)
+            Self::to_query_obj(None, StampMode::Read)
         ));
         self.add_values_to_params(q, None, StampMode::Read)
     }
@@ -140,8 +149,8 @@ pub trait RelationId:
         let mut q = Query::new(format!(
             "MATCH (n:{})-[r:{}]-()
              DELETE r",
-            T::as_query_obj(Some("n"), StampMode::Read),
-            Self::as_query_obj(None, StampMode::Read)
+            T::to_query_obj(Some("n"), StampMode::Read),
+            Self::to_query_obj(None, StampMode::Read)
         ));
         q = from.add_values_to_params(q, Some("n"), StampMode::Read);
         self.add_values_to_params(q, None, StampMode::Read)
@@ -151,9 +160,9 @@ pub trait RelationId:
         let mut q = Query::new(format!(
             "MATCH (s:{})-[r:{}]-(e:{})
              DELETE r",
-            S::as_query_obj(Some("s"), StampMode::Read),
-            Self::as_query_obj(None, StampMode::Read),
-            E::as_query_obj(Some("e"), StampMode::Read),
+            S::to_query_obj(Some("s"), StampMode::Read),
+            Self::to_query_obj(None, StampMode::Read),
+            E::to_query_obj(Some("e"), StampMode::Read),
         ));
         q = start.add_values_to_params(q, Some("s"), StampMode::Read);
         q = end.add_values_to_params(q, Some("e"), StampMode::Read);
@@ -170,17 +179,18 @@ pub enum RelationBound<'a, T: NodeEntity> {
     // Merge(T),
 }
 impl<'a, T: NodeEntity> RelationBound<'a, T> {
-    pub fn to_line(&self, prefix: &str) -> String {
+    /// Returns a CREATE (node:...) or MATCH (node:...) clause for this variant.
+    pub fn to_query_clause(&self, prefix: &str) -> String {
         match self {
             RelationBound::Create(_) => format!(
                 "CREATE ({}:{})",
                 prefix,
-                T::as_query_obj(Some(prefix), StampMode::Create)
+                T::to_query_obj(Some(prefix), StampMode::Create)
             ),
             RelationBound::Match(_) => format!(
                 "MATCH ({}:{})",
                 prefix,
-                T::Id::as_query_obj(Some(prefix), StampMode::Read)
+                T::Id::to_query_obj(Some(prefix), StampMode::Read)
             ),
             // RelationBound::Merge(_) => {
             //     format!(

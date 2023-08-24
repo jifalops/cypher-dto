@@ -1,7 +1,9 @@
-use cypher_dto::{node, relation, stamps};
+use cypher_dto::{timestamps, Node, Relation};
 
 /// Single ID field and optional timestamps. Has example of `new()` and `into_builder()` methods.
-#[node(stamps, name = "Person2")]
+#[timestamps]
+#[derive(Node, Clone)]
+#[name = "Person2"]
 pub struct Person {
     id: String,
     #[name = "name2"]
@@ -11,12 +13,12 @@ pub struct Person {
     colors: Vec<String>,
 }
 
-#[relation]
+#[derive(Relation)]
 struct Knows;
 
 #[cfg(test)]
 mod tests {
-    use cypher_dto::{NodeEntity, RelationBound};
+    use cypher_dto::{FieldSet, NodeEntity, RelationBound, RelationEntity, StampMode};
 
     use super::*;
 
@@ -25,7 +27,19 @@ mod tests {
         assert_eq!(Person::typename(), "Person2");
         assert_eq!(
             Person::field_names(),
-            vec!["id", "name2", "age", "colors", "created_at", "updated_at"]
+            ["id", "name2", "age", "colors", "created_at", "updated_at"]
+        );
+        assert_eq!(
+            Person::as_query_fields(),
+            "id: $id, name2: $name2, age: $age, colors: $colors, created_at: $created_at, updated_at: $updated_at"
+        );
+        assert_eq!(
+            Person::as_query_obj(),
+            "Person2 { id: $id, name2: $name2, age: $age, colors: $colors, created_at: $created_at, updated_at: $updated_at }"
+        );
+        assert_eq!(
+            Person::as_query_obj(),
+            Person::to_query_obj(None, StampMode::Read)
         );
         let p = Person::new(
             "id",
@@ -34,17 +48,17 @@ mod tests {
             &["red".to_owned(), "blue".to_owned()],
         );
         assert_eq!(p.id(), "id");
-        let p = p.into_builder().name("name2").build().unwrap();
+        let p = p.into_builder().name("name2").build();
         assert_eq!(p.name(), "name2");
         assert_eq!(p.colors(), &["red", "blue"]);
         assert_eq!(p.age(), Some(42));
         let now = chrono::Utc::now();
+
         assert_eq!(
             p.clone()
                 .into_builder()
                 .created_at(Some(now))
                 .build()
-                .unwrap()
                 .created_at(),
             Some(&now),
         );

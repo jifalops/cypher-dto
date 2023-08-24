@@ -1,17 +1,22 @@
-use cypher_dto::{Entity, Error, QueryFields, RelationEntity, RelationId, StampMode};
+use cypher_dto::{Error, FieldSet, RelationEntity, RelationId, StampMode};
 use neo4rs::{Query, Relation, Row, UnboundedRelation};
 
 /// A fieldless relation.
 #[derive(Clone, Debug, PartialEq)]
 pub struct WorksAt {}
-impl Entity for WorksAt {
+impl FieldSet for WorksAt {
     fn typename() -> &'static str {
         "WORKS_AT"
     }
-}
-impl QueryFields for WorksAt {
+
     fn field_names() -> &'static [&'static str] {
         &[]
+    }
+    fn as_query_fields() -> &'static str {
+        ""
+    }
+    fn as_query_obj() -> &'static str {
+        "WORKS_AT"
     }
 
     fn add_values_to_params(&self, query: Query, _: Option<&str>, _: StampMode) -> Query {
@@ -67,14 +72,19 @@ impl TryFrom<UnboundedRelation> for WorksAtId {
         Ok(Self {})
     }
 }
-impl Entity for WorksAtId {
+impl FieldSet for WorksAtId {
     fn typename() -> &'static str {
         WorksAt::typename()
     }
-}
-impl QueryFields for WorksAtId {
+
     fn field_names() -> &'static [&'static str] {
         &[]
+    }
+    fn as_query_fields() -> &'static str {
+        ""
+    }
+    fn as_query_obj() -> &'static str {
+        "WORKS_AT"
     }
     fn add_values_to_params(&self, query: Query, _prefix: Option<&str>, _mode: StampMode) -> Query {
         query

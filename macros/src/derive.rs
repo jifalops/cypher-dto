@@ -69,8 +69,5 @@ mod tests {
         assert_eq!(parse_name_meta(&attr.meta), Some("Foo".to_owned()));
         let attr: Attribute = parse_quote!(#[name = "Foo"]);
         assert_eq!(parse_name_meta(&attr.meta), Some("Foo".to_owned()));
-        let args = quote!(#[foo(name = "Foo", stamps = "full")]);
-        let meta: Meta = syn::parse2(args).unwrap();
-        assert_eq!(parse_name_meta(&meta), Some("Foo".to_owned()));
     }
 }

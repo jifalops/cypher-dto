@@ -46,7 +46,6 @@ impl Relation {
         let builder_impl = self.inner.builder_impl();
         quote! {
             #entity_impl
-            use ::cypher_dto::RelationEntity as _;
             impl ::cypher_dto::RelationEntity for #main_ident {
                 type Id = #id_ident;
                 fn identifier(&self) -> Self::Id {
@@ -101,7 +100,6 @@ impl Relation {
                 #( #idents: #types, )*
             }
             #entity_impl
-            use ::cypher_dto::RelationId as _;
             impl ::cypher_dto::RelationId for #id_ident {
                 type T = #main_ident;
             }

@@ -1,20 +1,27 @@
 # cypher-dto
 
 [![Crates.io](https://img.shields.io/crates/v/cypher-dto)](https://crates.io/crates/cypher-dto)
-[![Github.com](https://github.com/jifalops/cypher-dto/actions/workflows/rust.yml/badge.svg)](https://github.com/jifalops/cypher-dto/actions/workflows/rust.yml)
+[![Github.com](https://github.com/jifalops/cypher-dto/actions/workflows/ci.yml/badge.svg)](https://github.com/jifalops/cypher-dto/actions/workflows/ci.yml)
 [![Docs.rs](https://docs.rs/cypher-dto/badge.svg)](https://docs.rs/cypher-dto)
 ![License](https://img.shields.io/crates/l/cypher-dto.svg)
 
-A collection of traits and macros for working Data Transfer Objects (DTOs) in Neo4j.
+A collection of traits and macros for working with Data Transfer Objects (DTOs) in Neo4j.
 
+```rust
+use cypher_dto::Node;
 
+#[derive(Node)]
+struct Person {
+  name: String
+}
+```
 
 ## Examples
 
 ### Basic usage
 
 ```rust
-#[node]
+#[derive(Node)]
 struct Person {
     id: String,     // Inferred to be the only #[id] field.
     name: String,

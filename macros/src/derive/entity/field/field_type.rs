@@ -119,7 +119,7 @@ impl ArgHelper {
                 field_into_getter_suffix,
             }
         } else {
-            let is_copy = is_copy_type(&ty);
+            let is_copy = is_copy_type(ty);
             Self {
                 arg_type: ty.clone(),
                 arg_into_field_suffix: quote!(),
