@@ -31,7 +31,7 @@
   // $s_name: "Alice"
   // $e_name: "Bob"
   let query = id.read_between(&alice.into(), &bob.into());
-  let mut stream = graph.execute(id.read()).await.unwrap();
+  let mut stream = graph.execute(query).await.unwrap();
 
   let row = stream.next().await.unwrap().unwrap();
   let relation: neo4rs::UnboundedRelation = row.get("r").unwrap();

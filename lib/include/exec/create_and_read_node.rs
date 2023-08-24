@@ -8,6 +8,7 @@
   let person = Person::new("1234", "Alice");
 
   // CREATE (n:Person { id: $id, name: $name })
+  //
   // $id: "1234"
   // $name: "Alice"
   graph.run(person.create()).await.unwrap();
@@ -16,6 +17,7 @@
   let id = PersonId::new("1234");
 
   // MATCH (n:Person { id: $id }) RETURN n
+  //
   // $id: "1234"
   let mut stream = graph.execute(id.read()).await.unwrap();
 
