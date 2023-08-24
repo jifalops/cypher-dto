@@ -27,7 +27,7 @@ mod tests {
         assert_eq!(Person::typename(), "Person2");
         assert_eq!(
             Person::field_names(),
-            vec!["id", "name2", "age", "colors", "created_at", "updated_at"]
+            ["id", "name2", "age", "colors", "created_at", "updated_at"]
         );
         assert_eq!(
             Person::as_query_fields(),
