@@ -65,6 +65,13 @@ impl Entity {
 
         let new_and_getters = new_and_getters::impl_new_and_getters(self);
 
+        let as_fields = names
+            .iter()
+            .map(|n| format!("{n}: ${n}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let as_obj = format!("{} {{ {} }}", struct_name, as_fields);
+
         quote! {
             impl ::cypher_dto::FieldSet for #struct_ident {
                 fn typename() -> &'static str {
@@ -73,6 +80,14 @@ impl Entity {
 
                 fn field_names() -> &'static [&'static str] {
                     &[#(#names),*]
+                }
+
+                fn as_query_fields() -> &'static str {
+                    #as_fields
+                }
+
+                fn as_query_obj() -> &'static str {
+                    #as_obj
                 }
 
                 fn add_values_to_params(&self, mut query: ::neo4rs::Query, prefix: Option<&str>, mode: ::cypher_dto::StampMode) -> ::neo4rs::Query {

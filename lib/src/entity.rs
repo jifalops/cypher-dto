@@ -20,6 +20,18 @@ pub trait FieldSet: TryFrom<Row> {
     ///
     /// `struct Foo { bar: u8 }` would be `bar: $bar`.
     ///
+    /// This is a special case of [to_query_fields], where the prefix is `None` and the mode is [StampMode::Read], and is known at compile time.
+    fn as_query_fields() -> &'static str;
+
+    /// Wraps the fields formatted by [as_query_fields] with [typename] and a pair of curly braces.
+    ///
+    /// `Foo { bar: $bar }`
+    fn as_query_obj() -> &'static str;
+
+    /// Formats the field names as a query string.
+    ///
+    /// `struct Foo { bar: u8 }` would be `bar: $bar`.
+    ///
     /// Prefixes apply to the placeholders only (e.g. bar: $prefix_bar).
     fn to_query_fields(prefix: Option<&str>, mode: StampMode) -> String {
         let (stamps, other_fields) = Self::timestamps();
@@ -95,6 +107,14 @@ pub(crate) mod tests {
             &["name", "age"]
         }
 
+        fn as_query_fields() -> &'static str {
+            "name: $name, age: $age"
+        }
+
+        fn as_query_obj() -> &'static str {
+            "Foo { name: $name, age: $age }"
+        }
+
         fn add_values_to_params(&self, query: Query, prefix: Option<&str>, _: StampMode) -> Query {
             query
                 .param(&format_param("name", prefix), self.name.clone())
@@ -128,6 +148,14 @@ pub(crate) mod tests {
 
         fn field_names() -> &'static [&'static str] {
             &["created", "updated"]
+        }
+
+        fn as_query_fields() -> &'static str {
+            "created: $created, updated: $updated"
+        }
+
+        fn as_query_obj() -> &'static str {
+            "Bar { created: $created, updated: $updated }"
         }
 
         fn add_values_to_params(
@@ -175,6 +203,14 @@ pub(crate) mod tests {
 
         fn field_names() -> &'static [&'static str] {
             &[]
+        }
+
+        fn as_query_fields() -> &'static str {
+            ""
+        }
+
+        fn as_query_obj() -> &'static str {
+            "BAZ"
         }
 
         fn add_values_to_params(&self, query: Query, _: Option<&str>, _: StampMode) -> Query {
@@ -432,6 +468,14 @@ pub(crate) mod tests {
                 "f32_opt",
                 "f64_opt",
             ]
+        }
+
+        fn as_query_fields() -> &'static str {
+            "usize_num: $usize_num, isize_num: $isize_num, u8_num: $u8_num, u16_num: $u16_num, u32_num: $u32_num, u64_num: $u64_num, u128_num: $u128_num, i8_num: $i8_num, i16_num: $i16_num, i32_num: $i32_num, i64_num: $i64_num, i128_num: $i128_num, f32_num: $f32_num, f64_num: $f64_num, usize_opt: $usize_opt, isize_opt: $isize_opt, u8_opt: $u8_opt, u16_opt: $u16_opt, u32_opt: $u32_opt, u64_opt: $u64_opt, u128_opt: $u128_opt, i8_opt: $i8_opt, i16_opt: $i16_opt, i32_opt: $i32_opt, i64_opt: $i64_opt, i128_opt: $i128_opt, f32_opt: $f32_opt, f64_opt: $f64_opt"
+        }
+        // Trusting copilot: ^^ and vv
+        fn as_query_obj() -> &'static str {
+            "NumTypes { usize_num: $usize_num, isize_num: $isize_num, u8_num: $u8_num, u16_num: $u16_num, u32_num: $u32_num, u64_num: $u64_num, u128_num: $u128_num, i8_num: $i8_num, i16_num: $i16_num, i32_num: $i32_num, i64_num: $i64_num, i128_num: $i128_num, f32_num: $f32_num, f64_num: $f64_num, usize_opt: $usize_opt, isize_opt: $isize_opt, u8_opt: $u8_opt, u16_opt: $u16_opt, u32_opt: $u32_opt, u64_opt: $u64_opt, u128_opt: $u128_opt, i8_opt: $i8_opt, i16_opt: $i16_opt, i32_opt: $i32_opt, i64_opt: $i64_opt, i128_opt: $i128_opt, f32_opt: $f32_opt, f64_opt: $f64_opt }"
         }
 
         fn add_values_to_params(&self, q: Query, prefix: Option<&str>, _: StampMode) -> Query {

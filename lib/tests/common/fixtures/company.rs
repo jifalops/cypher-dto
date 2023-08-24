@@ -19,6 +19,14 @@ impl FieldSet for Company {
         &["name", "state", "created", "updated"]
     }
 
+    fn as_query_fields() -> &'static str {
+        "name: $name, state: $state, created: $created, updated: $updated"
+    }
+
+    fn as_query_obj() -> &'static str {
+        "Company { name: $name, state: $state, created: $created, updated: $updated }"
+    }
+
     fn add_values_to_params(&self, mut q: Query, prefix: Option<&str>, mode: StampMode) -> Query {
         q = q.param(&format_param("name", prefix), self.name.clone());
         q = q.param(&format_param("state", prefix), self.state.clone());
@@ -121,6 +129,12 @@ impl FieldSet for CompanyId {
 
     fn field_names() -> &'static [&'static str] {
         &["name", "state"]
+    }
+    fn as_query_fields() -> &'static str {
+        "name: $name, state: $state"
+    }
+    fn as_query_obj() -> &'static str {
+        "Company { name: $name, state: $state }"
     }
     fn add_values_to_params(&self, query: Query, prefix: Option<&str>, _: StampMode) -> Query {
         query

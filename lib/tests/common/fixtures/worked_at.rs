@@ -17,6 +17,12 @@ impl FieldSet for WorkedAt {
     fn field_names() -> &'static [&'static str] {
         &["until"]
     }
+    fn as_query_fields() -> &'static str {
+        "until: $until"
+    }
+    fn as_query_obj() -> &'static str {
+        "WORKED_AT { until: $until }"
+    }
 
     fn add_values_to_params(&self, q: Query, prefix: Option<&str>, _mode: StampMode) -> Query {
         q.param(&format_param("until", prefix), self.until.fixed_offset())
@@ -92,6 +98,12 @@ impl FieldSet for WorkedAtId {
 
     fn field_names() -> &'static [&'static str] {
         &["until"]
+    }
+    fn as_query_fields() -> &'static str {
+        "until: $until"
+    }
+    fn as_query_obj() -> &'static str {
+        "WORKED_AT { until: $until }"
     }
     fn add_values_to_params(&self, q: Query, prefix: Option<&str>, _mode: StampMode) -> Query {
         q.param(&format_param("until", prefix), self.until.fixed_offset())
