@@ -16,7 +16,8 @@
   // Find an existing person by id.
   let id = PersonId::new("1234");
 
-  // MATCH (n:Person { id: $id }) RETURN n
+  // MATCH (n:Person { id: $id })
+  // RETURN n
   //
   // $id: "1234"
   let mut stream = graph.execute(id.read()).await.unwrap();

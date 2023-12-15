@@ -64,7 +64,7 @@ pub trait FieldSet: TryFrom<Row> {
 pub enum StampMode {
     /// Any timestamp fields ([Stamps]) are treated as normal values.
     ///
-    /// Corresponding placeholders are added to the query fields (e.g. $created, $updated).
+    /// Corresponding placeholders are added to the query fields (e.g. $created_at, $updated_at).
     Read,
     /// Stamp fields are added to the query fields with a hardcoded value (e.g. `datetime()`).
     ///

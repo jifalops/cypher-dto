@@ -20,6 +20,7 @@
   // Create all three at once:
   let query = knows.create(RelationBound::Create(&alice), RelationBound::Create(&bob));
 
+
   // Or, manually build the same query:
   let query = format!(
     "CREATE (s:{}) \

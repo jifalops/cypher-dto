@@ -9,7 +9,7 @@ pub struct Person {
     #[name = "name2"]
     name: String,
     age: Option<u8>,
-    /// Favorite colors
+    /// Favorite colors (testing docs)
     colors: Vec<String>,
 }
 

@@ -108,6 +108,7 @@ impl Stamps {
     }
 }
 
+use neo4rs::Result;
 /// An abstraction over the different types of returned values from Neo4j.
 pub enum Neo4jMap<'a> {
     Row(&'a neo4rs::Row),

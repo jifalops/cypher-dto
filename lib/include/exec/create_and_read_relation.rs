@@ -1,3 +1,4 @@
+// ignore: unlinked-file, syntax-error
 {
   #[derive(Relation)]
   struct Knows {
@@ -26,7 +27,8 @@
   // Find the relationship just created.
   let id = KnowsId::new();
 
-  // MATCH (s:Person { name: $s_name })-[r:KNOWS]-(e:Person { name: $e_name }) RETURN r
+  // MATCH (s:Person { name: $s_name })-[r:KNOWS]-(e:Person { name: $e_name })
+  // RETURN r
   //
   // $s_name: "Alice"
   // $e_name: "Bob"
