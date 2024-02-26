@@ -4,12 +4,14 @@ services:
   app:
     build:
       context: ..
-      dockerfile: .devcontainer/Dockerfile
+      image: mcr.microsoft.com/devcontainers/rust:bookworm
     depends_on:
       - db
     command: sleep infinity
     volumes:
       - ..:/cypher-dto:cached
+    environment:
+      GITHUB_TOKEN: ${GITHUB_TOKEN}
 
   db:
     image: neo4j:5

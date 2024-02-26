@@ -3,14 +3,16 @@
   "dockerComposeFile": "./docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/cypher-dto",
-  "postCreateCommand": "sudo chown -R vscode:vscode /cypher-dto",
+  "postCreateCommand": ".devcontainer/post-create.sh",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
         "rust-lang.rust-analyzer",
         "JScearcy.rust-doc-viewer",
-        "tamasfe.even-better-toml",
-        "vadimcn.vscode-lldb"
+        "tamasfe.even-better-toml"
       ]
     }
   }
