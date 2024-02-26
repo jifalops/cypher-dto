@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    depends_on:
+      - db
+    command: sleep infinity
+    volumes:
+      - ..:/cypher-dto:cached
+
+  db:
+    image: neo4j:5
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - db_data:/data
+      - db_logs:/logs
+    environment:
+      NEO4J_AUTH: neo4j/developer
+
+volumes:
+  db_data:
+  db_logs:
