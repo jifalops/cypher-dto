@@ -1,7 +1,6 @@
 use super::{ArgHelper, Entity};
 use quote::{__private::TokenStream, quote};
 
-
 pub fn impl_new_and_getters(entity: &Entity) -> TokenStream {
     let entity_ident = entity.ident();
     let mut idents = Vec::new();

@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: ..
-      image: mcr.microsoft.com/devcontainers/rust:bookworm
+      dockerfile: .devcontainer/Dockerfile
     depends_on:
       - db
     command: sleep infinity

@@ -36,9 +36,7 @@ impl TryFrom<Row> for WorkedAt {
 impl RelationEntity for WorkedAt {
     type Id = WorkedAtId;
     fn identifier(&self) -> Self::Id {
-        WorkedAtId {
-            until: self.until,
-        }
+        WorkedAtId { until: self.until }
     }
 }
 impl TryFrom<Relation> for WorkedAt {
@@ -71,9 +69,7 @@ impl RelationId for WorkedAtId {
 }
 impl From<WorkedAt> for WorkedAtId {
     fn from(value: WorkedAt) -> Self {
-        WorkedAtId {
-            until: value.until,
-        }
+        WorkedAtId { until: value.until }
     }
 }
 impl TryFrom<Relation> for WorkedAtId {
