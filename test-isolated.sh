@@ -1,0 +1,4 @@
+unset NEO4J_TEST_URI
+unset NEO4J_TEST_USER
+unset NEO4J_TEST_PASS
+./test.sh
