@@ -1,7 +1,6 @@
 use super::{ArgHelper, Entity};
 use quote::{__private::TokenStream, format_ident, quote};
 
-
 pub fn impl_builder(entity: &Entity) -> TokenStream {
     let entity_ident = entity.ident();
     let _entity_name = entity.name();

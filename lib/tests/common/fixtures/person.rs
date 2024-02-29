@@ -84,16 +84,16 @@ impl TryFrom<Row> for Person {
         Ok(Self {
             id: value
                 .get("id")
-                .ok_or(Error::MissingField("id".to_owned()))?,
+                .map_err(|e| Error::MissingField("id".to_owned()))?,
             name: value
                 .get("name")
-                .ok_or(Error::MissingField("name".to_owned()))?,
+                .map_err(|e| Error::MissingField("name".to_owned()))?,
             age: match value.get::<i64>("age") {
-                Some(age) => Some(
+                Ok(age) => Some(
                     age.try_into()
                         .map_err(|_| Error::TypeMismatch("age".to_owned()))?,
                 ),
-                None => None,
+                Err(_) => None,
             },
             created_at: Some(map.get_timestamp("created_at")?),
             updated_at: Some(map.get_timestamp("updated_at")?),
@@ -115,16 +115,16 @@ impl TryFrom<Node> for Person {
         Ok(Self {
             id: value
                 .get("id")
-                .ok_or(Error::MissingField("id".to_owned()))?,
+                .map_err(|e| Error::MissingField("id".to_owned()))?,
             name: value
                 .get("name")
-                .ok_or(Error::MissingField("name".to_owned()))?,
+                .map_err(|e| Error::MissingField("name".to_owned()))?,
             age: match value.get::<i64>("age") {
-                Some(age) => Some(
+                Ok(age) => Some(
                     age.try_into()
                         .map_err(|_| Error::TypeMismatch("age".to_owned()))?,
                 ),
-                None => None,
+                Err(_) => None,
             },
             created_at: Some(map.get_timestamp("created_at")?),
             updated_at: Some(map.get_timestamp("updated_at")?),
@@ -153,7 +153,7 @@ impl TryFrom<Node> for PersonId {
         Ok(Self {
             id: value
                 .get("id")
-                .ok_or(Error::MissingField("id".to_owned()))?,
+                .map_err(|e| Error::MissingField("id".to_owned()))?,
         })
     }
 }
@@ -181,7 +181,7 @@ impl TryFrom<Row> for PersonId {
         Ok(Self {
             id: value
                 .get("id")
-                .ok_or(Error::MissingField("id".to_owned()))?,
+                .map_err(|e| Error::MissingField("id".to_owned()))?,
         })
     }
 }

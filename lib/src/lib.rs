@@ -22,8 +22,8 @@
 //! Dynamically added methods:
 //! 1. `fn into_values(self)` - returns a tuple of all the values in the struct.
 
-#![warn(missing_docs)]
-#![deny(rustdoc::broken_intra_doc_links)]
+// #![warn(missing_docs)]
+// #![deny(rustdoc::broken_intra_doc_links)]
 
 mod entity;
 mod error;

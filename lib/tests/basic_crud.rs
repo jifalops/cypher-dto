@@ -58,7 +58,7 @@ async fn basic_crud() {
     graph.run(acme.identifier().delete()).await.unwrap();
 
     let mut stream = graph
-        .execute(Query::new(format!("MATCH (n:Company) RETURN n")))
+        .execute(Query::new("MATCH (n:Company) RETURN n".to_string()))
         .await
         .unwrap();
     let row = stream.next().await.unwrap();

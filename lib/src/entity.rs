@@ -127,11 +127,11 @@ pub(crate) mod tests {
             Ok(Self {
                 name: value
                     .get("name")
-                    .ok_or(Error::MissingField("name".to_owned()))?,
+                    .map_err(|e| Error::MissingField("name".to_owned()))?,
                 age: u8::try_from(
                     value
                         .get::<i64>("age")
-                        .ok_or(Error::MissingField("age".to_owned()))?,
+                        .map_err(|e| Error::MissingField("age".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("age".to_owned()))?,
             })
@@ -535,169 +535,169 @@ pub(crate) mod tests {
                 usize_num: usize::try_from(
                     value
                         .get::<i64>("usize_num")
-                        .ok_or(Error::MissingField("usize_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("usize_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("usize_num".to_owned()))?,
                 isize_num: isize::try_from(
                     value
                         .get::<i64>("isize_num")
-                        .ok_or(Error::MissingField("isize_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("isize_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("isize_num".to_owned()))?,
                 u8_num: u8::try_from(
                     value
                         .get::<i64>("u8_num")
-                        .ok_or(Error::MissingField("u8_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("u8_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u8_num".to_owned()))?,
                 u16_num: u16::try_from(
                     value
                         .get::<i64>("u16_num")
-                        .ok_or(Error::MissingField("u16_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("u16_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u16_num".to_owned()))?,
                 u32_num: u32::try_from(
                     value
                         .get::<i64>("u32_num")
-                        .ok_or(Error::MissingField("u32_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("u32_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u32_num".to_owned()))?,
                 u64_num: u64::try_from(
                     value
                         .get::<i64>("u64_num")
-                        .ok_or(Error::MissingField("u64_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("u64_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u64_num".to_owned()))?,
                 u128_num: u128::try_from(
                     value
                         .get::<i64>("u128_num")
-                        .ok_or(Error::MissingField("u128_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("u128_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u128_num".to_owned()))?,
                 i8_num: i8::try_from(
                     value
                         .get::<i64>("i8_num")
-                        .ok_or(Error::MissingField("i8_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("i8_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("i8_num".to_owned()))?,
                 i16_num: i16::try_from(
                     value
                         .get::<i64>("i16_num")
-                        .ok_or(Error::MissingField("i16_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("i16_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("i16_num".to_owned()))?,
                 i32_num: i32::try_from(
                     value
                         .get::<i64>("i32_num")
-                        .ok_or(Error::MissingField("i32_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("i32_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("i32_num".to_owned()))?,
                 i64_num: value
                     .get("i64_num")
-                    .ok_or(Error::MissingField("i64_num".to_owned()))?,
+                    .map_err(|e| Error::MissingField("i64_num".to_owned()))?,
                 i128_num: i128::try_from(
                     value
                         .get::<i64>("i128_num")
-                        .ok_or(Error::MissingField("i128_num".to_owned()))?,
+                        .map_err(|e| Error::MissingField("i128_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("i128_num".to_owned()))?,
                 f32_num: value
                     .get::<f64>("f32_num")
-                    .ok_or(Error::MissingField("f32_num".to_owned()))?
+                    .map_err(|e| Error::MissingField("f32_num".to_owned()))?
                     as f32,
                 f64_num: value
                     .get("f64_num")
-                    .ok_or(Error::MissingField("f64_num".to_owned()))?,
+                    .map_err(|e| Error::MissingField("f64_num".to_owned()))?,
 
                 usize_opt: match value.get::<i64>("usize_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("usize_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 isize_opt: match value.get::<i64>("isize_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("isize_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 u8_opt: match value.get::<i64>("u8_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u8_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 u16_opt: match value.get::<i64>("u16_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u16_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
 
                 u32_opt: match value.get::<i64>("u32_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u32_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 u64_opt: match value.get::<i64>("u64_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u64_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 u128_opt: match value.get::<i64>("u128_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u128_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 i8_opt: match value.get::<i64>("i8_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("i8_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 i16_opt: match value.get::<i64>("i16_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("i16_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 i32_opt: match value.get::<i64>("i32_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("i32_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 i64_opt: match value.get("i64_opt") {
-                    Some(v) => Some(v),
-                    None => None,
+                    Ok(v) => Some(v),
+                    Err(_) => None,
                 },
                 i128_opt: match value.get::<i64>("i128_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("i128_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 f32_opt: match value.get::<f64>("f32_opt") {
-                    Some(v) => Some(v as f32),
-                    None => None,
+                    Ok(v) => Some(v as f32),
+                    Err(_) => None,
                 },
                 f64_opt: match value.get("f64_opt") {
-                    Some(v) => Some(v),
-                    None => None,
+                    Ok(v) => Some(v),
+                    Err(_) => None,
                 },
             })
         }
