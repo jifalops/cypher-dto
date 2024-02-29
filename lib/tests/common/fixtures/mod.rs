@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(unused_imports)]
 
 //! Hand implementations for what the macros would generate.
 mod company;
