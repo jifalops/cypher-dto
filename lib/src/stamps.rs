@@ -121,19 +121,19 @@ impl<'a> Neo4jMap<'a> {
             Neo4jMap::Row(value) => value
                 .get::<DateTime<FixedOffset>>(name)
                 .map(|dt| dt.into())
-                .map_err(|e| crate::Error::MissingField(name.to_owned())),
+                .map_err(|_e| crate::Error::MissingField(name.to_owned())),
             Neo4jMap::Node(value) => value
                 .get::<DateTime<FixedOffset>>(name)
                 .map(|dt| dt.into())
-                .map_err(|e| crate::Error::MissingField(name.to_owned())),
+                .map_err(|_e| crate::Error::MissingField(name.to_owned())),
             Neo4jMap::Relation(value) => value
                 .get::<DateTime<FixedOffset>>(name)
                 .map(|dt| dt.into())
-                .map_err(|e| crate::Error::MissingField(name.to_owned())),
+                .map_err(|_e| crate::Error::MissingField(name.to_owned())),
             Neo4jMap::UnboundedRelation(value) => value
                 .get::<DateTime<FixedOffset>>(name)
                 .map(|dt| dt.into())
-                .map_err(|e| crate::Error::MissingField(name.to_owned())),
+                .map_err(|_e| crate::Error::MissingField(name.to_owned())),
         }
     }
 }

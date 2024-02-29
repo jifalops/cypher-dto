@@ -55,10 +55,10 @@ impl TryFrom<Row> for Company {
         Ok(Self {
             name: value
                 .get("name")
-                .map_err(|e| Error::MissingField("name".to_owned()))?,
+                .map_err(|_e| Error::MissingField("name".to_owned()))?,
             state: value
                 .get("state")
-                .map_err(|e| Error::MissingField("state".to_owned()))?,
+                .map_err(|_e| Error::MissingField("state".to_owned()))?,
             created: map.get_timestamp("created")?,
             updated: map.get_timestamp("updated")?,
         })
@@ -80,10 +80,10 @@ impl TryFrom<Node> for Company {
         Ok(Self {
             name: value
                 .get("name")
-                .map_err(|e| Error::MissingField("name".to_owned()))?,
+                .map_err(|_e| Error::MissingField("name".to_owned()))?,
             state: value
                 .get("state")
-                .map_err(|e| Error::MissingField("state".to_owned()))?,
+                .map_err(|_e| Error::MissingField("state".to_owned()))?,
             created: map.get_timestamp("created")?,
             updated: map.get_timestamp("updated")?,
         })
@@ -115,10 +115,10 @@ impl TryFrom<Node> for CompanyId {
         Ok(Self {
             name: value
                 .get("name")
-                .map_err(|e| Error::MissingField("name".to_owned()))?,
+                .map_err(|_e| Error::MissingField("name".to_owned()))?,
             state: value
                 .get("state")
-                .map_err(|e| Error::MissingField("state".to_owned()))?,
+                .map_err(|_e| Error::MissingField("state".to_owned()))?,
         })
     }
 }
@@ -148,10 +148,10 @@ impl TryFrom<Row> for CompanyId {
         Ok(Self {
             name: value
                 .get("name")
-                .map_err(|e| Error::MissingField("name".to_owned()))?,
+                .map_err(|_e| Error::MissingField("name".to_owned()))?,
             state: value
                 .get("state")
-                .map_err(|e| Error::MissingField("state".to_owned()))?,
+                .map_err(|_e| Error::MissingField("state".to_owned()))?,
         })
     }
 }

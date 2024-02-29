@@ -84,10 +84,10 @@ impl TryFrom<Row> for Person {
         Ok(Self {
             id: value
                 .get("id")
-                .map_err(|e| Error::MissingField("id".to_owned()))?,
+                .map_err(|_e| Error::MissingField("id".to_owned()))?,
             name: value
                 .get("name")
-                .map_err(|e| Error::MissingField("name".to_owned()))?,
+                .map_err(|_e| Error::MissingField("name".to_owned()))?,
             age: match value.get::<i64>("age") {
                 Ok(age) => Some(
                     age.try_into()
@@ -115,10 +115,10 @@ impl TryFrom<Node> for Person {
         Ok(Self {
             id: value
                 .get("id")
-                .map_err(|e| Error::MissingField("id".to_owned()))?,
+                .map_err(|_e| Error::MissingField("id".to_owned()))?,
             name: value
                 .get("name")
-                .map_err(|e| Error::MissingField("name".to_owned()))?,
+                .map_err(|_e| Error::MissingField("name".to_owned()))?,
             age: match value.get::<i64>("age") {
                 Ok(age) => Some(
                     age.try_into()
@@ -153,7 +153,7 @@ impl TryFrom<Node> for PersonId {
         Ok(Self {
             id: value
                 .get("id")
-                .map_err(|e| Error::MissingField("id".to_owned()))?,
+                .map_err(|_e| Error::MissingField("id".to_owned()))?,
         })
     }
 }
@@ -181,7 +181,7 @@ impl TryFrom<Row> for PersonId {
         Ok(Self {
             id: value
                 .get("id")
-                .map_err(|e| Error::MissingField("id".to_owned()))?,
+                .map_err(|_e| Error::MissingField("id".to_owned()))?,
         })
     }
 }

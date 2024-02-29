@@ -7,7 +7,7 @@ license = "MIT"
 keywords = ["neo4j", "cypher", "dto", "query", "graph"]
 categories = ["database"]
 repository = "https://github.com/jifalops/cypher-dto"
-metadata.msrv = "1.60"
+metadata = { msrv = "1.60" }
 
 [features]
 default = ["macros"]
