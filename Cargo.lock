@@ -222,7 +222,7 @@ dependencies = [
 
 [[package]]
 name = "cypher-dto-macros"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "convert_case",
  "quote",
