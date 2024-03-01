@@ -2,8 +2,8 @@
   "name": "Cypher DTO",
   "dockerComposeFile": "./docker-compose.yml",
   "service": "app",
-  "workspaceFolder": "/cypher-dto",
   "remoteUser": "developer",
+  "workspaceFolder": "/cypher-dto",
   "postCreateCommand": ".devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
