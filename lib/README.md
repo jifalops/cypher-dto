@@ -57,7 +57,7 @@ assert_eq!(Knows::typename(), "KNOWS");
 ### Multi valued identifiers
 
 ```rust
-#[node]
+#[derive(Node)]
 struct Company {
   #[id]
   name: String,
@@ -90,7 +90,7 @@ query = id.add_values_to_params(query);
 * Doc comments are copied to the getters for the struct, the getter(s) on the `FooId` struct, and the methods on the `FooBuilder` struct.
 
 ```rust
-#[node]
+#[derive(Node)]
 struct Person {
   /// This comment is copied to the getter, the Id getter, and the builder method.
   name: String,
@@ -100,28 +100,12 @@ let p = p.into_builder().name("Ferris").build();
 assert_eq!(p.name(), "Ferris");
 ```
 
-### Using derive instead of `#[node]` or `#[relation]`
-
-```rust
-#[derive(Relation, Clone, Debug, PartialEq)]
-struct Knows;
-
-// Equivalent to:
-#[relation]
-struct Knows;
-
-// Or, if the `serde` feature is enabled:
-#[derive(Relation, Clone, Debug, PartialEq, Serialize, Deserialize)]
-```
-
-For more details about the macro variations, see the [cypher-dto-macros](https://crates.io/crates/cypher-dto-macros) crate.
-
 ### Timestamps
 
 There's built-in support for special timestamp fields: `created_at` and `updated_at`, `created` and `updated`, or any single one of those four.
 
 ```rust
-#[node(stamps)]
+#[timestamps]
 struct Person {
   name: String,
 }
@@ -129,7 +113,7 @@ struct Person {
 //   created_at: Option<DateTime<Utc>>,
 //   updated_at: Option<DateTime<Utc>>,
 
-#[node(stamps = "short")]
+#[timestamps = "short"]
 struct Person {
   name: String,
 }
@@ -137,7 +121,7 @@ struct Person {
 //   created: Option<DateTime<Utc>>,
 //   updated: Option<DateTime<Utc>>,
 
-#[node(stamps = "updated_at")]
+#[timestamps = "updated_at"]
 struct Person {
   name: String,
 }
@@ -148,25 +132,18 @@ struct Person {
 The timestamp fields are treated a little bit differently than other fields:
 
 * They are not parameters in the generated `::new()` method.
-* They sometimes have hardcoded values in `::as_query_fields()`.
-  * Calling `as_query_fields()` with `StampMode::Create` will use `datetime()` in the query instead of `$created_at` for example.
+* They sometimes have hardcoded values in `::to_query_fields()`.
+  * Calling `to_query_fields()` with `StampMode::Create` will use `datetime()` in the query instead of `$created_at` for example.
 
 `Option<DateTime<Utc>>` is used instead of `DateTime<Utc>` so that the fields can be `None` when creating a new instance, before it exists in the database.
 
-> NOTE: Support for Option params in the `neo4rs` crate is in master, but not yet released.
->
-> You are welcome to depend on the master branch of this library to enable full support for timestamps.
->
-> ```toml
-> [dependencies]
-> cypher-dto = { git = "https://github.com/jifalops/cypher-dto.git" }
-> ```
+For more details about the macro variations, see the [cypher-dto-macros](https://crates.io/crates/cypher-dto-macros) crate.
 
 ### Unitary CRUD operations
 
-This library takes the point of view that non-trivial queries should be managed by hand, but it does provide basic CRUD operations for convenience. Hopefully what you've seen so far shows how it can help create more readable complex queries.
+This library takes the point of view that non-trivial queries should be managed by hand, but it does provide basic CRUD operations for convenience.
 
-`#[node]` and `#[relation]` structs get `create()` and `update()` methods, while the corresponding `FooId` structs get `read()` and `delete()` methods, all of which return a `neo4rs::Query`.
+`#[derive(Node)]` and `#[derive(Relation)]` structs get `create()` and `update()` methods, while the corresponding `FooId` structs get `read()` and `delete()` methods, all of which return a `neo4rs::Query`.
 
 None of those methods even take any arguments, with the exception of creating a relation, which needs to know if the start and end nodes it's between need created or already exist.
 
@@ -181,7 +158,7 @@ struct Knows;
 
 let alice = Person::new("Alice");
 let bob = Person::new("Bob");
-let knows = Knows; // Relations can have fields and ids too of course.
+let knows = Knows; // Relations can have fields and ids too.
 
 let query = knows.create(RelationBound::Create(&alice), RelationBound::Create(&bob));
 ```
