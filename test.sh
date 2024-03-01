@@ -1,2 +1,2 @@
-cargo test --doc
+cargo test --doc --no-fail-fast
 cargo nextest run

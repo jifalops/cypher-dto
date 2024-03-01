@@ -1,1 +1,1 @@
-FROM jifalops/rust
+FROM jifalops/rust:1.0
