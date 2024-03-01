@@ -39,11 +39,11 @@ async fn create_all_at_once() {
         CREATE (bob)-[w2:{}]->(acme)
         RETURN alice, bob, acme, w, w2
         ",
-        Person::as_query_obj(Some("alice"), StampMode::Create),
-        Person::as_query_obj(Some("bob"), StampMode::Create),
-        Company::as_query_obj(Some("acme"), StampMode::Create),
-        WorkedAt::as_query_obj(Some("w"), StampMode::Create),
-        WorkedAt::as_query_obj(Some("w2"), StampMode::Create),
+        Person::to_query_obj(Some("alice"), StampMode::Create),
+        Person::to_query_obj(Some("bob"), StampMode::Create),
+        Company::to_query_obj(Some("acme"), StampMode::Create),
+        WorkedAt::to_query_obj(Some("w"), StampMode::Create),
+        WorkedAt::to_query_obj(Some("w2"), StampMode::Create),
     ));
     q = alice.add_values_to_params(q, Some("alice"), StampMode::Create);
     q = bob.add_values_to_params(q, Some("bob"), StampMode::Create);

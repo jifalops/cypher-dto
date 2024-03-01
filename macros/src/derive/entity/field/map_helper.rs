@@ -10,27 +10,27 @@ pub fn field_from_boltmap(name: &str, typ: &FieldType) -> TokenStream {
             quote!(
                 value.get::<::chrono::DateTime<::chrono::FixedOffset>>(#name)
                     .map(|dt| dt.into())
-                    .ok_or(::cypher_dto::Error::MissingField(#name.to_owned()))?
+                    .map_err(|e| ::cypher_dto::Error::MissingField(#name.to_owned()))?
             )
         }
         FieldType::OptionDateTimeUtc(_ty) => {
             quote!(
                 value.get::<::chrono::DateTime<::chrono::FixedOffset>>(#name)
-                    .map(|dt| dt.into())
+                    .map(|dt| dt.into()).ok()
             )
         }
         FieldType::Num(_ty, num) => {
             // Build from the inside out.
             // Example: cypher-dto/lib/src/entity.rs#L425
             let mut tokens = quote!(
-                value.get(#name).ok_or(::cypher_dto::Error::MissingField(#name.to_owned()))?
+                value.get(#name).map_err(|e| ::cypher_dto::Error::MissingField(#name.to_owned()))?
             );
 
             // Handle `value.get::<type>()`
             if let Some(type_arg) = num.map_getter_type_arg() {
                 let cast_type = type_arg.to_type();
                 tokens = quote!(
-                    value.get::<#cast_type>(#name).ok_or(::cypher_dto::Error::MissingField(#name.to_owned()))?
+                    value.get::<#cast_type>(#name).map_err(|e| ::cypher_dto::Error::MissingField(#name.to_owned()))?
                 );
             }
 
@@ -111,8 +111,8 @@ pub fn field_from_boltmap(name: &str, typ: &FieldType) -> TokenStream {
 
             quote!(
               match #get_call {
-                  Some(v) => Some(#some_inner),
-                  None => None,
+                  Ok(v) => Some(#some_inner),
+                  Err(_) => None,
               }
             )
         }
@@ -123,7 +123,7 @@ pub fn field_from_boltmap(name: &str, typ: &FieldType) -> TokenStream {
         }
         FieldType::Other(_ty) => {
             quote!(
-                value.get(#name).ok_or(::cypher_dto::Error::MissingField(#name.to_owned()))?
+                value.get(#name).map_err(|e| ::cypher_dto::Error::MissingField(#name.to_owned()))?
             )
         }
     }

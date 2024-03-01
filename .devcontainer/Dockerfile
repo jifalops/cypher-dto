@@ -1,1 +1,1 @@
-FROM mcr.microsoft.com/devcontainers/rust:bookworm
+FROM jifalops/rust:1.0

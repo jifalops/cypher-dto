@@ -46,7 +46,7 @@ async fn basic_crud() {
     assert_eq!(alice.identifier(), alice_id);
 
     // Update Alice's name
-    let alice = alice.into_builder().name("Allison").build().unwrap();
+    let alice = alice.into_builder().name("Allison").build();
     graph.run(alice.update()).await.unwrap();
 
     let mut stream = graph.execute(alice_id.read()).await.unwrap();
@@ -59,7 +59,7 @@ async fn basic_crud() {
     graph.run(acme.identifier().delete()).await.unwrap();
 
     let mut stream = graph
-        .execute(Query::new(format!("MATCH (n:Company) RETURN n")))
+        .execute(Query::new("MATCH (n:Company) RETURN n".to_string()))
         .await
         .unwrap();
     let row = stream.next().await.unwrap();

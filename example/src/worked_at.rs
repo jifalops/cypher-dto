@@ -14,12 +14,12 @@ pub struct WorkedAt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use cypher_dto::{QueryFields, StampMode};
+    use cypher_dto::{FieldSet, StampMode};
 
     #[test]
     fn rename() {
         assert_eq!(
-            WorkedAt::as_query_fields(None, StampMode::Read),
+            WorkedAt::to_query_fields(None, StampMode::Read),
             "foo: $foo"
         );
     }

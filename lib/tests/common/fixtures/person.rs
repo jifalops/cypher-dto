@@ -1,7 +1,5 @@
 use chrono::{DateTime, Utc};
-use cypher_dto::{
-    format_param, Entity, Error, Neo4jMap, NodeEntity, NodeId, QueryFields, StampMode,
-};
+use cypher_dto::{format_param, Error, FieldSet, Neo4jMap, NodeEntity, NodeId, StampMode};
 use neo4rs::{Node, Query, Row};
 
 /// Single ID field and optional timestamps. Has example of `new()` and `into_builder()` methods.
@@ -42,14 +40,19 @@ impl Person {
         self.into()
     }
 }
-impl Entity for Person {
+impl FieldSet for Person {
     fn typename() -> &'static str {
         "Person"
     }
-}
-impl QueryFields for Person {
+
     fn field_names() -> &'static [&'static str] {
         &["id", "name", "age", "created_at", "updated_at"]
+    }
+    fn as_query_fields() -> &'static str {
+        "id: $id, name: $name, age: $age, created_at: $created_at, updated_at: $updated_at"
+    }
+    fn as_query_obj() -> &'static str {
+        "Person { id: $id, name: $name, age: $age, created_at: $created_at, updated_at: $updated_at }"
     }
     fn add_values_to_params(&self, mut q: Query, prefix: Option<&str>, mode: StampMode) -> Query {
         q = q.param(&format_param("id", prefix), self.id.clone());
@@ -81,16 +84,16 @@ impl TryFrom<Row> for Person {
         Ok(Self {
             id: value
                 .get("id")
-                .ok_or(Error::MissingField("id".to_owned()))?,
+                .map_err(|_e| Error::MissingField("id".to_owned()))?,
             name: value
                 .get("name")
-                .ok_or(Error::MissingField("name".to_owned()))?,
+                .map_err(|_e| Error::MissingField("name".to_owned()))?,
             age: match value.get::<i64>("age") {
-                Some(age) => Some(
+                Ok(age) => Some(
                     age.try_into()
                         .map_err(|_| Error::TypeMismatch("age".to_owned()))?,
                 ),
-                None => None,
+                Err(_) => None,
             },
             created_at: Some(map.get_timestamp("created_at")?),
             updated_at: Some(map.get_timestamp("updated_at")?),
@@ -112,16 +115,16 @@ impl TryFrom<Node> for Person {
         Ok(Self {
             id: value
                 .get("id")
-                .ok_or(Error::MissingField("id".to_owned()))?,
+                .map_err(|_e| Error::MissingField("id".to_owned()))?,
             name: value
                 .get("name")
-                .ok_or(Error::MissingField("name".to_owned()))?,
+                .map_err(|_e| Error::MissingField("name".to_owned()))?,
             age: match value.get::<i64>("age") {
-                Some(age) => Some(
+                Ok(age) => Some(
                     age.try_into()
                         .map_err(|_| Error::TypeMismatch("age".to_owned()))?,
                 ),
-                None => None,
+                Err(_) => None,
             },
             created_at: Some(map.get_timestamp("created_at")?),
             updated_at: Some(map.get_timestamp("updated_at")?),
@@ -150,18 +153,23 @@ impl TryFrom<Node> for PersonId {
         Ok(Self {
             id: value
                 .get("id")
-                .ok_or(Error::MissingField("id".to_owned()))?,
+                .map_err(|_e| Error::MissingField("id".to_owned()))?,
         })
     }
 }
-impl Entity for PersonId {
+impl FieldSet for PersonId {
     fn typename() -> &'static str {
         Person::typename()
     }
-}
-impl QueryFields for PersonId {
+
     fn field_names() -> &'static [&'static str] {
         &["id"]
+    }
+    fn as_query_fields() -> &'static str {
+        "id: $id"
+    }
+    fn as_query_obj() -> &'static str {
+        "Person { id: $id }"
     }
     fn add_values_to_params(&self, query: Query, prefix: Option<&str>, _: StampMode) -> Query {
         query.param(&format_param("id", prefix), self.id.clone())
@@ -173,7 +181,7 @@ impl TryFrom<Row> for PersonId {
         Ok(Self {
             id: value
                 .get("id")
-                .ok_or(Error::MissingField("id".to_owned()))?,
+                .map_err(|_e| Error::MissingField("id".to_owned()))?,
         })
     }
 }

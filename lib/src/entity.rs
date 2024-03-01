@@ -1,23 +1,13 @@
 use crate::{format_query_fields, Stamps};
 use neo4rs::{Query, Row};
 
-/// A named collection of [QueryFields], such as a node or relationship.
-pub trait Entity: QueryFields {
+/// The full or partial fields on a node or relationship that may have timestamps.
+///
+/// This is the basic unit of query building used by [NodeEntity], [NodeId], [RelationEntity], and [RelationId].
+pub trait FieldSet: TryFrom<Row> {
     /// The primary label for a node, or the type of a relationship.
     fn typename() -> &'static str;
 
-    /// Formatted like `typename() { as_query_fields() }`, or for a fieldless relationship, just `typename()`.
-    fn as_query_obj(prefix: Option<&str>, mode: StampMode) -> String {
-        let fields = Self::as_query_fields(prefix, mode);
-        if fields.is_empty() {
-            return Self::typename().to_owned();
-        }
-        format!("{} {{ {} }}", Self::typename(), fields)
-    }
-}
-
-/// A collection of fields to be used in a cypher query.
-pub trait QueryFields: TryFrom<Row> {
     /// The fields in this set.
     fn field_names() -> &'static [&'static str];
 
@@ -30,8 +20,20 @@ pub trait QueryFields: TryFrom<Row> {
     ///
     /// `struct Foo { bar: u8 }` would be `bar: $bar`.
     ///
+    /// This is a special case of [to_query_fields], where the prefix is `None` and the mode is [StampMode::Read], and is known at compile time.
+    fn as_query_fields() -> &'static str;
+
+    /// Wraps the fields formatted by [as_query_fields] with [typename] and a pair of curly braces.
+    ///
+    /// `Foo { bar: $bar }`
+    fn as_query_obj() -> &'static str;
+
+    /// Formats the field names as a query string.
+    ///
+    /// `struct Foo { bar: u8 }` would be `bar: $bar`.
+    ///
     /// Prefixes apply to the placeholders only (e.g. bar: $prefix_bar).
-    fn as_query_fields(prefix: Option<&str>, mode: StampMode) -> String {
+    fn to_query_fields(prefix: Option<&str>, mode: StampMode) -> String {
         let (stamps, other_fields) = Self::timestamps();
         let stamps = stamps.as_query_fields(prefix, mode);
         let other_fields = format_query_fields(other_fields, prefix);
@@ -44,8 +46,17 @@ pub trait QueryFields: TryFrom<Row> {
         [other_fields, stamps].join(", ")
     }
 
-    /// Adds all field values to the query parameters, matching placeholders in [as_query_fields].
+    /// Adds all field values to the query parameters, matching placeholders in [as_query_fields()].
     fn add_values_to_params(&self, query: Query, prefix: Option<&str>, mode: StampMode) -> Query;
+
+    /// Formatted like `typename() { as_query_fields() }`, or for a fieldless relationship, just `typename()`.
+    fn to_query_obj(prefix: Option<&str>, mode: StampMode) -> String {
+        let fields = Self::to_query_fields(prefix, mode);
+        if fields.is_empty() {
+            return Self::typename().to_owned();
+        }
+        format!("{} {{ {} }}", Self::typename(), fields)
+    }
 }
 
 /// Controls which timestamps are hardcoded in a query (e.g. `datetime()`),
@@ -53,7 +64,7 @@ pub trait QueryFields: TryFrom<Row> {
 pub enum StampMode {
     /// Any timestamp fields ([Stamps]) are treated as normal values.
     ///
-    /// Corresponding placeholders are added to the query fields (e.g. $created, $updated).
+    /// Corresponding placeholders are added to the query fields (e.g. $created_at, $updated_at).
     Read,
     /// Stamp fields are added to the query fields with a hardcoded value (e.g. `datetime()`).
     ///
@@ -64,28 +75,6 @@ pub enum StampMode {
     /// Applies to both [Stamps::Updated] and [Stamps::Both].
     Update,
 }
-
-// /// An observable for working with [QueryFields] and [neo4rs::Query]s.
-// pub struct QueryBuilder {
-//     parts: Vec<String>,
-//     params: HashSet<String>,
-// }
-// impl QueryBuilder {
-//     pub fn new() -> Self {
-//         Self {
-//             parts: Vec::new(),
-//             params: HashSet::new(),
-//         }
-//     }
-//     pub fn add(&mut self, s: &str, params: &[&str]) -> &Self {
-//         self.parts.push(s.to_owned());
-//         self.params.extend(params.iter().map(|p| (*p).to_owned()));
-//         self
-//     }
-//     pub fn build(self) -> (String, HashSet<String>) {
-//         (self.parts.join(" "), self.params)
-//     }
-// }
 
 #[cfg(test)]
 pub(crate) mod tests {
@@ -109,14 +98,21 @@ pub(crate) mod tests {
     //
     // Foo impl
     //
-    impl Entity for Foo {
+    impl FieldSet for Foo {
         fn typename() -> &'static str {
             "Foo"
         }
-    }
-    impl QueryFields for Foo {
+
         fn field_names() -> &'static [&'static str] {
             &["name", "age"]
+        }
+
+        fn as_query_fields() -> &'static str {
+            "name: $name, age: $age"
+        }
+
+        fn as_query_obj() -> &'static str {
+            "Foo { name: $name, age: $age }"
         }
 
         fn add_values_to_params(&self, query: Query, prefix: Option<&str>, _: StampMode) -> Query {
@@ -131,11 +127,11 @@ pub(crate) mod tests {
             Ok(Self {
                 name: value
                     .get("name")
-                    .ok_or(Error::MissingField("name".to_owned()))?,
+                    .map_err(|_e| Error::MissingField("name".to_owned()))?,
                 age: u8::try_from(
                     value
                         .get::<i64>("age")
-                        .ok_or(Error::MissingField("age".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("age".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("age".to_owned()))?,
             })
@@ -145,14 +141,21 @@ pub(crate) mod tests {
     //
     // Bar impl
     //
-    impl Entity for Bar {
+    impl FieldSet for Bar {
         fn typename() -> &'static str {
             "Bar"
         }
-    }
-    impl QueryFields for Bar {
+
         fn field_names() -> &'static [&'static str] {
             &["created", "updated"]
+        }
+
+        fn as_query_fields() -> &'static str {
+            "created: $created, updated: $updated"
+        }
+
+        fn as_query_obj() -> &'static str {
+            "Bar { created: $created, updated: $updated }"
         }
 
         fn add_values_to_params(
@@ -193,14 +196,21 @@ pub(crate) mod tests {
     //
     // Baz impl
     //
-    impl Entity for Baz {
+    impl FieldSet for Baz {
         fn typename() -> &'static str {
             "BAZ"
         }
-    }
-    impl QueryFields for Baz {
+
         fn field_names() -> &'static [&'static str] {
             &[]
+        }
+
+        fn as_query_fields() -> &'static str {
+            ""
+        }
+
+        fn as_query_obj() -> &'static str {
+            "BAZ"
         }
 
         fn add_values_to_params(&self, query: Query, _: Option<&str>, _: StampMode) -> Query {
@@ -218,24 +228,24 @@ pub(crate) mod tests {
     fn as_obj() {
         // Foo
         assert_eq!(
-            Foo::as_query_obj(None, StampMode::Read),
+            Foo::to_query_obj(None, StampMode::Read),
             "Foo { name: $name, age: $age }"
         );
         // Bar
         assert_eq!(
-            Bar::as_query_obj(None, StampMode::Read),
+            Bar::to_query_obj(None, StampMode::Read),
             "Bar { created: $created, updated: $updated }"
         );
         assert_eq!(
-            Bar::as_query_obj(None, StampMode::Create),
+            Bar::to_query_obj(None, StampMode::Create),
             "Bar { created: datetime(), updated: datetime() }"
         );
         assert_eq!(
-            Bar::as_query_obj(None, StampMode::Update),
+            Bar::to_query_obj(None, StampMode::Update),
             "Bar { created: $created, updated: datetime() }"
         );
         // Baz
-        assert_eq!(Baz::as_query_obj(None, StampMode::Read), "BAZ");
+        assert_eq!(Baz::to_query_obj(None, StampMode::Read), "BAZ");
     }
 
     #[test]
@@ -253,7 +263,7 @@ pub(crate) mod tests {
         // Foo
         let mut q = Query::new(format!(
             "CREATE (n:{})",
-            Foo::as_query_obj(None, StampMode::Create)
+            Foo::to_query_obj(None, StampMode::Create)
         ));
         q = foo.add_values_to_params(q, None, StampMode::Create);
         assert!(q.has_param_key("name"));
@@ -262,7 +272,7 @@ pub(crate) mod tests {
         // Bar
         let mut q = Query::new(format!(
             "MATCH (n:{})",
-            Bar::as_query_obj(None, StampMode::Read)
+            Bar::to_query_obj(None, StampMode::Read)
         ));
         q = bar.add_values_to_params(q, None, StampMode::Read);
         assert!(q.has_param_key("created"));
@@ -270,7 +280,7 @@ pub(crate) mod tests {
 
         let mut q = Query::new(format!(
             "CREATE (n:{})",
-            Bar::as_query_obj(None, StampMode::Create)
+            Bar::to_query_obj(None, StampMode::Create)
         ));
         q = bar.add_values_to_params(q, None, StampMode::Create);
         assert!(!q.has_param_key("created"));
@@ -278,7 +288,7 @@ pub(crate) mod tests {
 
         let mut q = Query::new(format!(
             "MERGE (n:{})",
-            Bar::as_query_obj(None, StampMode::Update)
+            Bar::to_query_obj(None, StampMode::Update)
         ));
         q = bar.add_values_to_params(q, None, StampMode::Update);
         assert!(q.has_param_key("created"));
@@ -289,9 +299,9 @@ pub(crate) mod tests {
             "MATCH (s:{})
             MATCH (e:{})
             CREATE (s)-[r:{}]->(e)",
-            Foo::as_query_obj(Some("s"), StampMode::Read),
-            Bar::as_query_obj(Some("e"), StampMode::Read),
-            Baz::as_query_obj(None, StampMode::Create),
+            Foo::to_query_obj(Some("s"), StampMode::Read),
+            Bar::to_query_obj(Some("e"), StampMode::Read),
+            Baz::to_query_obj(None, StampMode::Create),
         ));
         q = foo.add_values_to_params(q, Some("s"), StampMode::Read);
         q = bar.add_values_to_params(q, Some("e"), StampMode::Read);
@@ -336,7 +346,7 @@ pub(crate) mod tests {
         };
         let mut q = Query::new(format!(
             "CREATE (n:{})",
-            NumTypes::as_query_obj(None, StampMode::Create)
+            NumTypes::to_query_obj(None, StampMode::Create)
         ));
         q = num_types.add_values_to_params(q, None, StampMode::Create);
         assert!(q.has_param_key("usize_num"));
@@ -422,12 +432,11 @@ pub(crate) mod tests {
             }
         }
     }
-    impl Entity for NumTypes {
+    impl FieldSet for NumTypes {
         fn typename() -> &'static str {
             "NumTypes"
         }
-    }
-    impl QueryFields for NumTypes {
+
         fn field_names() -> &'static [&'static str] {
             &[
                 "usize_num",
@@ -459,6 +468,14 @@ pub(crate) mod tests {
                 "f32_opt",
                 "f64_opt",
             ]
+        }
+
+        fn as_query_fields() -> &'static str {
+            "usize_num: $usize_num, isize_num: $isize_num, u8_num: $u8_num, u16_num: $u16_num, u32_num: $u32_num, u64_num: $u64_num, u128_num: $u128_num, i8_num: $i8_num, i16_num: $i16_num, i32_num: $i32_num, i64_num: $i64_num, i128_num: $i128_num, f32_num: $f32_num, f64_num: $f64_num, usize_opt: $usize_opt, isize_opt: $isize_opt, u8_opt: $u8_opt, u16_opt: $u16_opt, u32_opt: $u32_opt, u64_opt: $u64_opt, u128_opt: $u128_opt, i8_opt: $i8_opt, i16_opt: $i16_opt, i32_opt: $i32_opt, i64_opt: $i64_opt, i128_opt: $i128_opt, f32_opt: $f32_opt, f64_opt: $f64_opt"
+        }
+        // Trusting copilot: ^^ and vv
+        fn as_query_obj() -> &'static str {
+            "NumTypes { usize_num: $usize_num, isize_num: $isize_num, u8_num: $u8_num, u16_num: $u16_num, u32_num: $u32_num, u64_num: $u64_num, u128_num: $u128_num, i8_num: $i8_num, i16_num: $i16_num, i32_num: $i32_num, i64_num: $i64_num, i128_num: $i128_num, f32_num: $f32_num, f64_num: $f64_num, usize_opt: $usize_opt, isize_opt: $isize_opt, u8_opt: $u8_opt, u16_opt: $u16_opt, u32_opt: $u32_opt, u64_opt: $u64_opt, u128_opt: $u128_opt, i8_opt: $i8_opt, i16_opt: $i16_opt, i32_opt: $i32_opt, i64_opt: $i64_opt, i128_opt: $i128_opt, f32_opt: $f32_opt, f64_opt: $f64_opt }"
         }
 
         fn add_values_to_params(&self, q: Query, prefix: Option<&str>, _: StampMode) -> Query {
@@ -518,169 +535,169 @@ pub(crate) mod tests {
                 usize_num: usize::try_from(
                     value
                         .get::<i64>("usize_num")
-                        .ok_or(Error::MissingField("usize_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("usize_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("usize_num".to_owned()))?,
                 isize_num: isize::try_from(
                     value
                         .get::<i64>("isize_num")
-                        .ok_or(Error::MissingField("isize_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("isize_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("isize_num".to_owned()))?,
                 u8_num: u8::try_from(
                     value
                         .get::<i64>("u8_num")
-                        .ok_or(Error::MissingField("u8_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("u8_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u8_num".to_owned()))?,
                 u16_num: u16::try_from(
                     value
                         .get::<i64>("u16_num")
-                        .ok_or(Error::MissingField("u16_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("u16_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u16_num".to_owned()))?,
                 u32_num: u32::try_from(
                     value
                         .get::<i64>("u32_num")
-                        .ok_or(Error::MissingField("u32_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("u32_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u32_num".to_owned()))?,
                 u64_num: u64::try_from(
                     value
                         .get::<i64>("u64_num")
-                        .ok_or(Error::MissingField("u64_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("u64_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u64_num".to_owned()))?,
                 u128_num: u128::try_from(
                     value
                         .get::<i64>("u128_num")
-                        .ok_or(Error::MissingField("u128_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("u128_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("u128_num".to_owned()))?,
                 i8_num: i8::try_from(
                     value
                         .get::<i64>("i8_num")
-                        .ok_or(Error::MissingField("i8_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("i8_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("i8_num".to_owned()))?,
                 i16_num: i16::try_from(
                     value
                         .get::<i64>("i16_num")
-                        .ok_or(Error::MissingField("i16_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("i16_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("i16_num".to_owned()))?,
                 i32_num: i32::try_from(
                     value
                         .get::<i64>("i32_num")
-                        .ok_or(Error::MissingField("i32_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("i32_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("i32_num".to_owned()))?,
                 i64_num: value
                     .get("i64_num")
-                    .ok_or(Error::MissingField("i64_num".to_owned()))?,
+                    .map_err(|_e| Error::MissingField("i64_num".to_owned()))?,
                 i128_num: i128::try_from(
                     value
                         .get::<i64>("i128_num")
-                        .ok_or(Error::MissingField("i128_num".to_owned()))?,
+                        .map_err(|_e| Error::MissingField("i128_num".to_owned()))?,
                 )
                 .map_err(|_| Error::TypeMismatch("i128_num".to_owned()))?,
                 f32_num: value
                     .get::<f64>("f32_num")
-                    .ok_or(Error::MissingField("f32_num".to_owned()))?
+                    .map_err(|_e| Error::MissingField("f32_num".to_owned()))?
                     as f32,
                 f64_num: value
                     .get("f64_num")
-                    .ok_or(Error::MissingField("f64_num".to_owned()))?,
+                    .map_err(|_e| Error::MissingField("f64_num".to_owned()))?,
 
                 usize_opt: match value.get::<i64>("usize_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("usize_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 isize_opt: match value.get::<i64>("isize_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("isize_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 u8_opt: match value.get::<i64>("u8_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u8_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 u16_opt: match value.get::<i64>("u16_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u16_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
 
                 u32_opt: match value.get::<i64>("u32_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u32_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 u64_opt: match value.get::<i64>("u64_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u64_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 u128_opt: match value.get::<i64>("u128_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("u128_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 i8_opt: match value.get::<i64>("i8_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("i8_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 i16_opt: match value.get::<i64>("i16_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("i16_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 i32_opt: match value.get::<i64>("i32_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("i32_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 i64_opt: match value.get("i64_opt") {
-                    Some(v) => Some(v),
-                    None => None,
+                    Ok(v) => Some(v),
+                    Err(_) => None,
                 },
                 i128_opt: match value.get::<i64>("i128_opt") {
-                    Some(v) => Some(
+                    Ok(v) => Some(
                         v.try_into()
                             .map_err(|_| Error::TypeMismatch("i128_opt".to_owned()))?,
                     ),
-                    None => None,
+                    Err(_) => None,
                 },
                 f32_opt: match value.get::<f64>("f32_opt") {
-                    Some(v) => Some(v as f32),
-                    None => None,
+                    Ok(v) => Some(v as f32),
+                    Err(_) => None,
                 },
                 f64_opt: match value.get("f64_opt") {
-                    Some(v) => Some(v),
-                    None => None,
+                    Ok(v) => Some(v),
+                    Err(_) => None,
                 },
             })
         }

@@ -1,14 +1,13 @@
 use super::{ArgHelper, Entity};
 use quote::{__private::TokenStream, format_ident, quote};
-use syn::Type;
 
 pub fn impl_builder(entity: &Entity) -> TokenStream {
     let entity_ident = entity.ident();
-    let entity_name = entity.name();
+    let _entity_name = entity.name();
     let ident = format_ident!("{}Builder", entity_ident);
     let (idents, types, names, comments, _into_params, _from_boltmaps) = entity.fields.to_vectors();
 
-    let mut opt_types = Vec::new();
+    let mut all_types = Vec::new();
     let (
         arg_type,
         arg_into_field_suffix,
@@ -23,29 +22,21 @@ pub fn impl_builder(entity: &Entity) -> TokenStream {
 
     for index in 0..idents.len() {
         let id = idents[index];
-        let name = names[index];
+        let _name = names[index];
         let ty = types[index];
         let arg_convert = &arg_into_field_suffix[index];
         match ty.is_option() {
             true => {
-                opt_types.push(ty.as_type().clone());
-                assignments.push(quote!(#id));
+                all_types.push(ty.as_type().clone());
+                assignments.push(quote!(#id  #arg_convert));
                 from_entity.push(quote!(value.#id));
                 into_entity.push(quote!(value.#id));
             }
             false => {
-                let t = ty.as_type();
-                let s = format!("Option<{}>", quote!(#t));
-                opt_types.push(match syn::parse_str::<Type>(&s) {
-                    Ok(ty) => ty,
-                    Err(e) => panic!(
-                        "Failed to wrap type in Option for {}: {}. ({})",
-                        ident, e, s
-                    ),
-                });
-                assignments.push(quote!(Some(#id #arg_convert)));
-                from_entity.push(quote!(Some(value.#id)));
-                into_entity.push(quote!(value.#id.ok_or(::cypher_dto::Error::BuilderError(#entity_name.to_owned(), #name.to_owned()))?));
+                all_types.push(ty.as_type().clone());
+                assignments.push(quote!(#id #arg_convert));
+                from_entity.push(quote!(value.#id));
+                into_entity.push(quote!(value.#id));
             }
         }
     }
@@ -53,14 +44,9 @@ pub fn impl_builder(entity: &Entity) -> TokenStream {
 
     quote! {
         #vis struct #ident {
-            #( #idents: #opt_types, )*
+            #( #idents: #all_types, )*
         }
         impl #ident {
-            pub fn new() -> Self {
-                Self {
-                    #( #idents: None, )*
-                }
-            }
             #(
                 #( #comments )*
                 pub fn #idents(mut self, #idents: #arg_type) -> Self {
@@ -68,13 +54,8 @@ pub fn impl_builder(entity: &Entity) -> TokenStream {
                     self
                 }
             )*
-            pub fn build(self) -> ::std::result::Result<#entity_ident, ::cypher_dto::Error> {
-                self.try_into()
-            }
-        }
-        impl Default for #ident {
-            fn default() -> Self {
-                Self::new()
+            pub fn build(self) -> #entity_ident {
+                self.into()
             }
         }
         impl From<#entity_ident> for #ident {
@@ -84,12 +65,11 @@ pub fn impl_builder(entity: &Entity) -> TokenStream {
                 }
             }
         }
-        impl TryFrom<#ident> for #entity_ident {
-            type Error = ::cypher_dto::Error;
-            fn try_from(value: #ident) -> ::std::result::Result<Self, Self::Error> {
-                Ok(Self {
+        impl From<#ident> for #entity_ident {
+            fn from(value: #ident) -> Self {
+                Self {
                     #( #idents: #into_entity, )*
-                })
+                }
             }
         }
         impl #entity_ident {

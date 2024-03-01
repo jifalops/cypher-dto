@@ -2,17 +2,14 @@
   "name": "Cypher DTO",
   "dockerComposeFile": "./docker-compose.yml",
   "service": "app",
+  "remoteUser": "developer",
   "workspaceFolder": "/cypher-dto",
   "postCreateCommand": ".devcontainer/post-create.sh",
-  "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
   "customizations": {
     "vscode": {
       "extensions": [
         "rust-lang.rust-analyzer",
-        "JScearcy.rust-doc-viewer",
+        "serayuzgur.crates",
         "tamasfe.even-better-toml"
       ]
     }

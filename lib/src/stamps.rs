@@ -60,8 +60,6 @@ impl Stamps {
     }
 
     /// Returns these timestamp fields as a query string, depending on the [StampMode].
-    ///
-    /// Similar to [QueryFields::as_query_fields], but with a Stamps instance.
     pub fn as_query_fields(&self, prefix: Option<&str>, mode: StampMode) -> String {
         if self == &Stamps::None {
             return "".to_owned();
@@ -123,19 +121,19 @@ impl<'a> Neo4jMap<'a> {
             Neo4jMap::Row(value) => value
                 .get::<DateTime<FixedOffset>>(name)
                 .map(|dt| dt.into())
-                .ok_or(crate::Error::MissingField(name.to_owned())),
+                .map_err(|_e| crate::Error::MissingField(name.to_owned())),
             Neo4jMap::Node(value) => value
                 .get::<DateTime<FixedOffset>>(name)
                 .map(|dt| dt.into())
-                .ok_or(crate::Error::MissingField(name.to_owned())),
+                .map_err(|_e| crate::Error::MissingField(name.to_owned())),
             Neo4jMap::Relation(value) => value
                 .get::<DateTime<FixedOffset>>(name)
                 .map(|dt| dt.into())
-                .ok_or(crate::Error::MissingField(name.to_owned())),
+                .map_err(|_e| crate::Error::MissingField(name.to_owned())),
             Neo4jMap::UnboundedRelation(value) => value
                 .get::<DateTime<FixedOffset>>(name)
                 .map(|dt| dt.into())
-                .ok_or(crate::Error::MissingField(name.to_owned())),
+                .map_err(|_e| crate::Error::MissingField(name.to_owned())),
         }
     }
 }

@@ -34,7 +34,6 @@ impl Node {
         let builder_impl = self.inner.builder_impl();
         quote! {
             #entity_impl
-            use ::cypher_dto::NodeEntity as _;
             impl ::cypher_dto::NodeEntity for #main_ident {
                 type Id = #id_ident;
                 fn identifier(&self) -> Self::Id {
@@ -72,7 +71,6 @@ impl Node {
                 #( #idents: #types, )*
             }
             #entity_impl
-            use ::cypher_dto::NodeId as _;
             impl ::cypher_dto::NodeId for #id_ident {
                 type T = #main_ident;
             }
