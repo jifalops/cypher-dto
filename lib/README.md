@@ -49,7 +49,7 @@ query = person.add_values_to_params(query);
 ```
 
 ```rust
-#[relation]
+#[derive(Clone, Debug, PartialEq, Relation)]
 struct Knows;
 assert_eq!(Knows::typename(), "KNOWS");
 ```
@@ -148,12 +148,14 @@ This library takes the point of view that non-trivial queries should be managed 
 None of those methods even take any arguments, with the exception of creating a relation, which needs to know if the start and end nodes it's between need created or already exist.
 
 ```rust
-#[node]
+use cypher_dto::{Node, Relation};
+
+#[derive(Node)]
 Person {
   name: String,
 }
 
-#[relation]
+#[derive(Clone, Debug, PartialEq, Relation)]
 struct Knows;
 
 let alice = Person::new("Alice");
