@@ -45,7 +45,7 @@ let mut query = Query::new(format!(
     "CREATE (n:{})",
     Person::as_query_obj()
 ));
-query = person.add_values_to_params(query);
+query = person.add_values_to_params(query, None, StampMode::Create);
 ```
 
 ```rust
@@ -80,7 +80,7 @@ let mut query = Query::new(format!(
     "MATCH (n:{}) RETURN n",
     CompanyId::as_query_obj()
 ));
-query = id.add_values_to_params(query);
+query = id.add_values_to_params(query, None, StampMode::Read);
 ```
 
 ### Builder, new, and getters
