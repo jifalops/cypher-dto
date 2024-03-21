@@ -11,6 +11,7 @@ pub struct Person {
     age: Option<u8>,
     /// Favorite colors
     colors: Vec<String>,
+    photo_url: Option<String>,
 }
 
 #[derive(Relation)]
@@ -46,6 +47,7 @@ mod tests {
             "name",
             Some(42),
             &["red".to_owned(), "blue".to_owned()],
+            None,
         );
         assert_eq!(p.id(), "id");
         let p = p.into_builder().name("name2").build();
