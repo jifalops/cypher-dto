@@ -10,7 +10,7 @@ async fn basic_crud() {
     let neo4j = Neo4jContainer::new().await;
     let graph = neo4j.graph();
 
-    let alice = Person::new(&uuid(), "Alice", None, &[]);
+    let alice = Person::new(&uuid(), "Alice", None, &[], None);
     assert!(alice.created_at().is_none());
     assert!(alice.updated_at().is_none());
 
@@ -28,6 +28,7 @@ async fn basic_crud() {
         "Bob",
         Some(42),
         &["red".to_owned(), "blue".to_owned()],
+        None,
     );
     graph.run(bob.create()).await.unwrap();
 

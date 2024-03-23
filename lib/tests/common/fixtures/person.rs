@@ -45,6 +45,10 @@ impl FieldSet for Person {
         "Person"
     }
 
+    fn labels() -> &'static [&'static str] {
+        &["Person"]
+    }
+
     fn field_names() -> &'static [&'static str] {
         &["id", "name", "age", "created_at", "updated_at"]
     }
@@ -160,6 +164,10 @@ impl TryFrom<Node> for PersonId {
 impl FieldSet for PersonId {
     fn typename() -> &'static str {
         Person::typename()
+    }
+
+    fn labels() -> &'static [&'static str] {
+        Person::labels()
     }
 
     fn field_names() -> &'static [&'static str] {

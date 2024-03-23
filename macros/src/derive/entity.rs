@@ -15,13 +15,21 @@ pub struct Entity {
     vis: syn::Visibility,
     ident: Ident,
     name: String,
+    labels: Vec<String>,
     fields: EntityFields,
 }
 impl Entity {
     pub fn new(input: DeriveInput, typ: EntityType) -> (Self, Self) {
         let vis = input.vis.clone();
         let ident = input.ident.clone();
-        let name = parse_entity_name(&input, typ);
+        let mut labels = parse_entity_labels(&input);
+        let name: String;
+        if labels.is_empty() {
+            name = parse_entity_name(&input, typ);
+            labels.push(name.clone());
+        } else {
+            name = labels[0].clone();
+        }
         let fields = EntityFields::new(input.data, typ);
         let id_ident = format_ident!("{}Id", &ident);
         (
@@ -29,12 +37,14 @@ impl Entity {
                 vis: vis.clone(),
                 ident,
                 name: name.clone(),
+                labels: labels.clone(),
                 fields: fields.0,
             },
             Self {
                 vis,
                 ident: id_ident,
                 name,
+                labels,
                 fields: fields.1,
             },
         )
@@ -48,6 +58,9 @@ impl Entity {
     pub fn name(&self) -> &str {
         &self.name
     }
+    pub fn labels(&self) -> &[String] {
+        &self.labels
+    }
     pub fn fields(&self) -> &EntityFields {
         &self.fields
     }
@@ -59,6 +72,7 @@ impl Entity {
     pub fn entity_impl(&self) -> TokenStream {
         let struct_ident = &self.ident;
         let struct_name = &self.name;
+        let struct_labels = &self.labels;
         let (idents, types, names, _comments, into_params, from_boltmaps) =
             self.fields.to_vectors();
         let types: Vec<&Type> = types.iter().map(|t| t.as_type()).collect();
@@ -70,12 +84,16 @@ impl Entity {
             .map(|n| format!("{n}: ${n}"))
             .collect::<Vec<_>>()
             .join(", ");
-        let as_obj = format!("{} {{ {} }}", struct_name, as_fields);
+        let as_obj = format!("{} {{ {} }}", struct_labels.join(":"), as_fields);
 
         quote! {
             impl ::cypher_dto::FieldSet for #struct_ident {
                 fn typename() -> &'static str {
                     #struct_name
+                }
+
+                fn labels() -> &'static [&'static str] {
+                    &[#(#struct_labels),*]
                 }
 
                 fn field_names() -> &'static [&'static str] {
@@ -128,4 +146,27 @@ fn parse_entity_name(input: &DeriveInput, typ: EntityType) -> String {
         };
     }
     name
+}
+
+fn parse_entity_labels(input: &DeriveInput) -> Vec<String> {
+    // Determine the labels from an attribute or the struct name.
+    let mut labels = Vec::new();
+    let mut has_labels = false;
+    let mut has_name = false;
+    for attr in input.attrs.iter() {
+        if attr.path().is_ident("labels") {
+            has_labels = true;
+            labels = derive::parse_labels(attr);
+        }
+        if attr.path().is_ident("name") {
+            has_name = true;
+        }
+    }
+    if has_labels && has_name {
+        panic!(
+            "Cannot specify both 'name' and 'labels' attributes on struct '{}'",
+            input.ident
+        )
+    }
+    labels
 }

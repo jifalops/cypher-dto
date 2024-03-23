@@ -15,6 +15,10 @@ impl FieldSet for Company {
         "Company"
     }
 
+    fn labels() -> &'static [&'static str] {
+        &["Company"]
+    }
+
     fn field_names() -> &'static [&'static str] {
         &["name", "state", "created", "updated"]
     }
@@ -125,6 +129,10 @@ impl TryFrom<Node> for CompanyId {
 impl FieldSet for CompanyId {
     fn typename() -> &'static str {
         Company::typename()
+    }
+
+    fn labels() -> &'static [&'static str] {
+        Company::labels()
     }
 
     fn field_names() -> &'static [&'static str] {

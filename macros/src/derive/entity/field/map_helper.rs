@@ -118,7 +118,7 @@ pub fn field_from_boltmap(name: &str, typ: &FieldType) -> TokenStream {
         }
         FieldType::OptionOther(_ty) => {
             quote!(
-                value.get(#name).map_err(|e| ::cypher_dto::Error::MissingField(#name.to_owned()))?
+                value.get(#name).ok()
             )
         }
         FieldType::Other(_ty) => {

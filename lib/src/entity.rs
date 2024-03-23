@@ -8,6 +8,9 @@ pub trait FieldSet: TryFrom<Row> {
     /// The primary label for a node, or the type of a relationship.
     fn typename() -> &'static str;
 
+    /// The labels for a node. For relationships, this is always a single label.
+    fn labels() -> &'static [&'static str];
+
     /// The fields in this set.
     fn field_names() -> &'static [&'static str];
 
@@ -53,7 +56,7 @@ pub trait FieldSet: TryFrom<Row> {
     fn to_query_obj(prefix: Option<&str>, mode: StampMode) -> String {
         let fields = Self::to_query_fields(prefix, mode);
         if fields.is_empty() {
-            return Self::typename().to_owned();
+            return Self::labels().join(":").to_owned();
         }
         format!("{} {{ {} }}", Self::typename(), fields)
     }
@@ -103,6 +106,10 @@ pub(crate) mod tests {
             "Foo"
         }
 
+        fn labels() -> &'static [&'static str] {
+            &["Foo", "FooLabel2"]
+        }
+
         fn field_names() -> &'static [&'static str] {
             &["name", "age"]
         }
@@ -112,7 +119,7 @@ pub(crate) mod tests {
         }
 
         fn as_query_obj() -> &'static str {
-            "Foo { name: $name, age: $age }"
+            "Foo:FooLabel2 { name: $name, age: $age }"
         }
 
         fn add_values_to_params(&self, query: Query, prefix: Option<&str>, _: StampMode) -> Query {
@@ -144,6 +151,10 @@ pub(crate) mod tests {
     impl FieldSet for Bar {
         fn typename() -> &'static str {
             "Bar"
+        }
+
+        fn labels() -> &'static [&'static str] {
+            &["Bar"]
         }
 
         fn field_names() -> &'static [&'static str] {
@@ -199,6 +210,10 @@ pub(crate) mod tests {
     impl FieldSet for Baz {
         fn typename() -> &'static str {
             "BAZ"
+        }
+
+        fn labels() -> &'static [&'static str] {
+            &["BAZ"]
         }
 
         fn field_names() -> &'static [&'static str] {
@@ -437,6 +452,10 @@ pub(crate) mod tests {
             "NumTypes"
         }
 
+        fn labels() -> &'static [&'static str] {
+            &["NumTypes"]
+        }
+
         fn field_names() -> &'static [&'static str] {
             &[
                 "usize_num",
@@ -473,7 +492,7 @@ pub(crate) mod tests {
         fn as_query_fields() -> &'static str {
             "usize_num: $usize_num, isize_num: $isize_num, u8_num: $u8_num, u16_num: $u16_num, u32_num: $u32_num, u64_num: $u64_num, u128_num: $u128_num, i8_num: $i8_num, i16_num: $i16_num, i32_num: $i32_num, i64_num: $i64_num, i128_num: $i128_num, f32_num: $f32_num, f64_num: $f64_num, usize_opt: $usize_opt, isize_opt: $isize_opt, u8_opt: $u8_opt, u16_opt: $u16_opt, u32_opt: $u32_opt, u64_opt: $u64_opt, u128_opt: $u128_opt, i8_opt: $i8_opt, i16_opt: $i16_opt, i32_opt: $i32_opt, i64_opt: $i64_opt, i128_opt: $i128_opt, f32_opt: $f32_opt, f64_opt: $f64_opt"
         }
-        // Trusting copilot: ^^ and vv
+
         fn as_query_obj() -> &'static str {
             "NumTypes { usize_num: $usize_num, isize_num: $isize_num, u8_num: $u8_num, u16_num: $u16_num, u32_num: $u32_num, u64_num: $u64_num, u128_num: $u128_num, i8_num: $i8_num, i16_num: $i16_num, i32_num: $i32_num, i64_num: $i64_num, i128_num: $i128_num, f32_num: $f32_num, f64_num: $f64_num, usize_opt: $usize_opt, isize_opt: $isize_opt, u8_opt: $u8_opt, u16_opt: $u16_opt, u32_opt: $u32_opt, u64_opt: $u64_opt, u128_opt: $u128_opt, i8_opt: $i8_opt, i16_opt: $i16_opt, i32_opt: $i32_opt, i64_opt: $i64_opt, i128_opt: $i128_opt, f32_opt: $f32_opt, f64_opt: $f64_opt }"
         }

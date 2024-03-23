@@ -7,7 +7,7 @@ use derive::{Node, Relation};
 use syn::{parse_macro_input, DeriveInput};
 
 /// Derives the [NodeEntity](::cypher_dto::NodeEntity) and related traits.
-#[proc_macro_derive(Node, attributes(name, id))]
+#[proc_macro_derive(Node, attributes(name, id, labels))]
 pub fn derive_node(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     Node::new(input).to_token_stream()

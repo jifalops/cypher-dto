@@ -3,7 +3,8 @@ use cypher_dto::{timestamps, Node, Relation};
 /// Single ID field and optional timestamps. Has example of `new()` and `into_builder()` methods.
 #[timestamps]
 #[derive(Node, Clone)]
-#[name = "Person2"]
+// #[name = "Person2"]
+#[labels("Person2", "PersonExtraLabel")]
 pub struct Person {
     id: String,
     #[name = "name2"]
@@ -26,17 +27,30 @@ mod tests {
     #[test]
     fn person() {
         assert_eq!(Person::typename(), "Person2");
+        assert_eq!(Person::labels(), &["Person2, PersonExtraLabel"]);
         assert_eq!(
             Person::field_names(),
-            ["id", "name2", "age", "colors", "created_at", "updated_at"]
+            [
+                "id",
+                "name2",
+                "age",
+                "colors",
+                "photo_url",
+                "created_at",
+                "updated_at"
+            ]
         );
         assert_eq!(
             Person::as_query_fields(),
-            "id: $id, name2: $name2, age: $age, colors: $colors, created_at: $created_at, updated_at: $updated_at"
+            "id: $id, name2: $name2, age: $age, colors: $colors, photo_url: $photo_url, created_at: $created_at, updated_at: $updated_at"
         );
         assert_eq!(
             Person::as_query_obj(),
-            "Person2 { id: $id, name2: $name2, age: $age, colors: $colors, created_at: $created_at, updated_at: $updated_at }"
+            format!(
+                "{} {{ {} }}",
+                Person::labels().join(":"),
+                Person::as_query_fields()
+            )
         );
         assert_eq!(
             Person::as_query_obj(),

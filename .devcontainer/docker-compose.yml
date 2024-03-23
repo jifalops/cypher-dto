@@ -11,7 +11,6 @@ services:
     volumes:
       - ..:/cypher-dto:cached
     environment:
-      PROJECT_ROOT: /cypher-dto
       GITHUB_TOKEN: ${GITHUB_TOKEN}
       TZ: ${TZ}
       NEO4J_TEST_URI: "bolt://db:7687"
@@ -21,8 +20,8 @@ services:
   db:
     image: neo4j:5
     ports:
-      - "7474:7474"
-      - "7687:7687"
+      - "7474"
+      - "7687"
     volumes:
       - db_data:/data
       - db_logs:/logs

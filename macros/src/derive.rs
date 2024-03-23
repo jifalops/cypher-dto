@@ -5,7 +5,7 @@ mod relation;
 pub use node::Node;
 pub use relation::Relation;
 
-use quote::{__private::TokenStream, quote};
+use quote::{__private::TokenStream, quote, ToTokens};
 use syn::{Attribute, LitStr, Meta};
 
 #[cfg(feature = "serde")]
@@ -49,6 +49,40 @@ pub fn parse_name_meta(meta: &Meta) -> Option<String> {
                 syn::parse2::<LitStr>(quote!(#expr))
                     .map(|lit| lit.value())
                     .ok()
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Get the labels as in `#[labels("Foo", "Bar")]`
+pub fn parse_labels(attr: &Attribute) -> Vec<String> {
+    parse_labels_meta(&attr.meta).unwrap_or_else(|| panic!("Expected #[labels(\"...\", \"...\")]."))
+}
+
+pub fn parse_labels_meta(meta: &Meta) -> Option<Vec<String>> {
+    match meta {
+        // Parse #[labels("Foo", "Bar")].
+        Meta::List(list) => {
+            if list.path.is_ident("labels") {
+                let mut labels = Vec::new();
+                if let Err(e) = list.parse_nested_meta(|meta| {
+                    let label = syn::parse2::<LitStr>(meta.path.into_token_stream())
+                        .map(|lit| lit.value())
+                        .unwrap();
+
+                    labels.push(label);
+                    // match meta.path.get_ident() {
+                    //     Some(ident) => labels.push(ident.to_string()),
+                    //     None => panic!("Expected a label."),
+                    // };
+                    Ok(())
+                }) {
+                    panic!("Expected a list of labels: {}", e);
+                }
+                Some(labels)
             } else {
                 None
             }

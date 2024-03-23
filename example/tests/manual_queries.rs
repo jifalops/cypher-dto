@@ -10,12 +10,13 @@ async fn create_all_at_once() {
     let neo4j = Neo4jContainer::new().await;
     let graph = neo4j.graph();
 
-    let alice = Person::new(&uuid(), "Alice", None, &[]);
+    let alice = Person::new(&uuid(), "Alice", None, &[], None);
     let bob = Person::new(
         &uuid(),
         "Bob",
         Some(42),
         &["red".to_owned(), "blue".to_owned()],
+        None,
     );
     let acme = Company {
         name: "Acme".to_owned(),

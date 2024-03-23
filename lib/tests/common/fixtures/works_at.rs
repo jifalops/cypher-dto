@@ -9,6 +9,10 @@ impl FieldSet for WorksAt {
         "WORKS_AT"
     }
 
+    fn labels() -> &'static [&'static str] {
+        &["WORKS_AT"]
+    }
+
     fn field_names() -> &'static [&'static str] {
         &[]
     }
@@ -75,6 +79,10 @@ impl TryFrom<UnboundedRelation> for WorksAtId {
 impl FieldSet for WorksAtId {
     fn typename() -> &'static str {
         WorksAt::typename()
+    }
+
+    fn labels() -> &'static [&'static str] {
+        WorksAt::labels()
     }
 
     fn field_names() -> &'static [&'static str] {
