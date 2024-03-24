@@ -58,7 +58,7 @@ impl Entity {
     pub fn name(&self) -> &str {
         &self.name
     }
-    pub fn labels(&self) -> &[String] {
+    pub fn _labels(&self) -> &[String] {
         &self.labels
     }
     pub fn fields(&self) -> &EntityFields {

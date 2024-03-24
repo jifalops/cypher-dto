@@ -5,10 +5,10 @@ mod relation;
 pub use node::Node;
 pub use relation::Relation;
 
-use quote::{__private::TokenStream, quote, ToTokens};
+use quote::{__private::TokenStream, quote};
 use syn::{
     parse::{Parse, ParseStream},
-    Attribute, LitStr, Meta, Result, Token,
+    Attribute, LitStr, Meta, Token,
 };
 
 #[cfg(feature = "serde")]
