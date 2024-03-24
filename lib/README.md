@@ -7,13 +7,37 @@
 
 A collection of traits and macros for working with Data Transfer Objects (DTOs) in Neo4j.
 
+## Brief Overview
+
 ```rust
-use cypher_dto::Node;
+use cypher_dto::{Node, Relation};
 
 #[derive(Node)]
 struct Person {
   name: String
 }
+
+#[derive(Relation)]
+struct Knows {
+  since: u16
+}
+
+let alice = Person::new("Alice");
+let bob = Person::new("Bob");
+let knows = Knows::new(2020);
+
+let graph = neo4rs::Graph::new(/*...*/);
+
+
+let query: neo4rs::Query = alice.create();
+graph.execute(query);
+
+let alice = alice.into_builder().name("Allison").build();
+let query = alice.update();
+graph.execute(query);
+
+let query = knows.create(RelationBound::Match(&alice), RelationBound::Create(&bob));
+graph.execute(query);
 ```
 
 ## Examples
@@ -21,6 +45,9 @@ struct Person {
 ### Basic usage
 
 ```rust
+use cypher_dto::Node;
+use neo4rs::Query;
+
 #[derive(Node)]
 struct Person {
     id: String,     // Inferred to be the only #[id] field.
@@ -38,7 +65,7 @@ assert_eq!(Person::as_query_obj(), "Person { id: $id, name: $name, zip_code: $zi
 let person = Person::new("123", "John", "12345");
 
 // Unitary CRUD operations are provided for convenience.
-let query: neo4rs::Query = person.create();
+let query = person.create();
 
 // Equivalent to:
 let mut query = Query::new(format!(
@@ -57,6 +84,9 @@ assert_eq!(Knows::typename(), "KNOWS");
 ### Multi valued identifiers
 
 ```rust
+use cypher_dto::Node;
+use neo4rs::Query;
+
 #[derive(Node)]
 struct Company {
   #[id]
@@ -74,7 +104,7 @@ assert_eq!(id, CompanyId::new("Acme", "CA"));
 assert_eq!(CompanyId::typename(), "Company");
 assert_eq!(CompanyId::field_names(), &["name", "state"]);
 
-let query: neo4rs::Query = id.read();
+let query = id.read();
 // Equivalent to:
 let mut query = Query::new(format!(
     "MATCH (n:{}) RETURN n",
@@ -105,6 +135,8 @@ assert_eq!(p.name(), "Ferris");
 There's built-in support for special timestamp fields: `created_at` and `updated_at`, `created` and `updated`, or any single one of those four.
 
 ```rust
+use cypher_dto::timestamps;
+
 #[timestamps]
 struct Person {
   name: String,
@@ -163,4 +195,19 @@ let bob = Person::new("Bob");
 let knows = Knows; // Relations can have fields and ids too.
 
 let query = knows.create(RelationBound::Create(&alice), RelationBound::Create(&bob));
+```
+
+### Node labels
+
+While [`neo4rs::Node::labels()`](https://docs.rs/neo4rs/latest/neo4rs/struct.Node.html#method.labels) can be used to read the current labels of a node from the database, this library provides a way to define the labels a struct should use. Those labels are then used by the built in CRUD operations.
+
+```rust
+#[derive(Node)]
+#[labels("Person", "Employee")]
+Person {
+  name: String,
+}
+
+let person = Person::new("Alice");
+assert_eq!(person.labels(), &["Person", "Employee"]);
 ```
