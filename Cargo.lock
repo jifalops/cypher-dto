@@ -205,7 +205,7 @@ dependencies = [
 
 [[package]]
 name = "cypher-dto"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "chrono",
  "cypher-dto-macros",
@@ -222,7 +222,7 @@ dependencies = [
 
 [[package]]
 name = "cypher-dto-macros"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "convert_case",
  "quote",
