@@ -27,7 +27,7 @@ mod tests {
     #[test]
     fn person() {
         assert_eq!(Person::typename(), "Person2");
-        assert_eq!(Person::labels(), &["Person2, PersonExtraLabel"]);
+        assert_eq!(Person::labels(), &["Person2", "PersonExtraLabel"]);
         assert_eq!(
             Person::field_names(),
             [

@@ -6,7 +6,10 @@ pub use node::Node;
 pub use relation::Relation;
 
 use quote::{__private::TokenStream, quote, ToTokens};
-use syn::{Attribute, LitStr, Meta};
+use syn::{
+    parse::{Parse, ParseStream},
+    Attribute, LitStr, Meta, Result, Token,
+};
 
 #[cfg(feature = "serde")]
 pub fn derive_serde() -> TokenStream {
@@ -67,27 +70,32 @@ pub fn parse_labels_meta(meta: &Meta) -> Option<Vec<String>> {
         // Parse #[labels("Foo", "Bar")].
         Meta::List(list) => {
             if list.path.is_ident("labels") {
-                let mut labels = Vec::new();
-                if let Err(e) = list.parse_nested_meta(|meta| {
-                    let label = syn::parse2::<LitStr>(meta.path.into_token_stream())
-                        .map(|lit| lit.value())
-                        .unwrap();
-
-                    labels.push(label);
-                    // match meta.path.get_ident() {
-                    //     Some(ident) => labels.push(ident.to_string()),
-                    //     None => panic!("Expected a label."),
-                    // };
-                    Ok(())
-                }) {
-                    panic!("Expected a list of labels: {}", e);
+                match list.parse_args::<Labels>() {
+                    Ok(labels) => Some(labels.0),
+                    Err(e) => panic!("Expected a list of labels: {}", e),
                 }
-                Some(labels)
             } else {
                 None
             }
         }
         _ => None,
+    }
+}
+
+struct Labels(Vec<String>);
+
+impl Parse for Labels {
+    fn parse(input: ParseStream) -> syn::Result<Labels> {
+        let mut values = Vec::new();
+        while !input.is_empty() {
+            let lit_str = input.parse::<LitStr>()?;
+            values.push(lit_str.value());
+            if input.is_empty() {
+                break;
+            }
+            input.parse::<Token![,]>()?;
+        }
+        Ok(Labels(values))
     }
 }
 

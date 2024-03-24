@@ -55,10 +55,11 @@ pub trait FieldSet: TryFrom<Row> {
     /// Formatted like `typename() { as_query_fields() }`, or for a fieldless relationship, just `typename()`.
     fn to_query_obj(prefix: Option<&str>, mode: StampMode) -> String {
         let fields = Self::to_query_fields(prefix, mode);
+        let labels = Self::labels().join(":");
         if fields.is_empty() {
-            return Self::labels().join(":").to_owned();
+            return labels;
         }
-        format!("{} {{ {} }}", Self::typename(), fields)
+        format!("{} {{ {} }}", labels, fields)
     }
 }
 
