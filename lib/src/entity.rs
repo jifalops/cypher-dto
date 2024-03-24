@@ -245,7 +245,7 @@ pub(crate) mod tests {
         // Foo
         assert_eq!(
             Foo::to_query_obj(None, StampMode::Read),
-            "Foo { name: $name, age: $age }"
+            "Foo:FooLabel2 { name: $name, age: $age }"
         );
         // Bar
         assert_eq!(
